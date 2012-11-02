@@ -1,0 +1,36 @@
+#
+# Author: Chris Roberts (<chris@hw-ops.com>)
+#
+# chkconfig: 345 99 1
+# Description: repmgrd init
+# Provides: repmgrd
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+
+<% if @el -%>
+source /etc/rc.d/init.d/functions
+<% end -%>
+
+[ -x <%= @bin_path %> ] || exit 1
+
+case "$1" in
+  start)
+    echo "Starting repmgrd"
+    <% if @el -%>
+    daemon <%= @bin_path %>
+    <% else -%>
+    start-stop-daemon --start --quiet --exec <%= @bin_path %>
+    <% end -%>
+    ;;
+  stop)
+    echo "Stopping repmgrd""
+    kill -SIGHUP `pgrep <%= @bin_path %>` &> /dev/null
+    ;;
+  status)
+    kill -0 `pgrep <%= @bin_path %>` &> /dev/null
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|status}"
+    exit 1
+    ;;
+esac
