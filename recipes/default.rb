@@ -1,8 +1,5 @@
 include_recipe 'build-essential'
 
-default[:repmgr][:packages][:pg_dev] = 'postgresql-server-dev-9.1'
-default[:repmgr][:packages][:dependencies] = %w(libxslt1-dev libpam0g)
-
 (node[:repmgr][:packages][:dependencies] + Array(node[:repmgr][:packages][:pg_dev])).each do |pkg|
   package pkg
 end
