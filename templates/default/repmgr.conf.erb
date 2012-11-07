@@ -1,0 +1,4 @@
+cluster=<%= node[:repmgr][:cluster_name] %>
+node=<%= node[:repmgr][:node_number] %> # number required?
+node_name=<%= node[:repmgr][:node_name] || node.name %>
+conninfo='host=<%= node.ipaddress %>' # moar here
