@@ -6,3 +6,4 @@ default[:repmgr][:packages][:pg_dev] = 'postgresql-server-dev-9.1'
 default[:repmgr][:packages][:dependencies] = %w(libxslt1-dev libpam0g-dev libedit-dev)
 default[:repmgr][:repmgrd_bin] = '/usr/bin/repmgrd'
 default[:repmgr][:config_file_path] = '/etc/repmgr/repmgr.conf'
+default[:repmgr][:wal_files] = 100 # 5000 suggested for heavy writes
