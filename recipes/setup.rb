@@ -2,7 +2,7 @@ include_recipe 'repmgr'
 
 if(node[:repmgr][:replication][:role] == 'master')
   execute 'register master node' do
-    "repmgr -f #{node[:repmgr][:config_file_path]} master register"
+    command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     not_if 'pgrep repmgrd'
   end
 else
@@ -23,7 +23,7 @@ else
       execute 'scrub postgresql data directory' do
         execute "rm -rf #{node[:postgresql][:config][:data_directory]}"
         only_if do
-          File.directory?(node[:postgresql][:config][:data_directory]})
+          File.directory?(node[:postgresql][:config][:data_directory])
         end
       end
 
