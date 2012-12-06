@@ -19,11 +19,11 @@ case "$1" in
     <% if @el -%>
     daemon <%= @bin_path %>
     <% else -%>
-    start-stop-daemon --start --quiet --exec <%= @bin_path %>
+    start-stop-daemon --start --quiet --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
     <% end -%>
     ;;
   stop)
-    echo "Stopping repmgrd""
+    echo "Stopping repmgrd"
     kill -SIGHUP `pgrep <%= @bin_path %>` &> /dev/null
     ;;
   status)

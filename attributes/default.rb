@@ -21,3 +21,4 @@ default[:repmgr][:replication][:listen_addresses] = '*'
 default[:repmgr][:replication][:user] = 'replication_user'
 default[:repmgr][:replication][:database] = 'replication_db'
 default[:repmgr][:replication][:standby_feedback] = true
+default[:repmgr][:replication][:hostname] = 'localhost'

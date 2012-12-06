@@ -54,6 +54,7 @@ end
 
 template '/etc/init.d/repmgrd' do
   source 'repmgrd.initd.erb'
+  mode '0755'
   variables(
             :bin_path => node[:repmgr][:repmgrd_bin],
             :el => node.platform_family == 'rhel'

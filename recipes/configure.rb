@@ -5,20 +5,25 @@ include_recipe 'repmgr'
 
 pg_secret = SecureRandom.base64
 
+node.set[:repmgr][:replication][:user_password] = pg_secret
+node.save # make sure the password gets saved!
+
 execute 'create replication user' do
   command "psql -c \"create user #{node[:repmgr][:replication][:user]} replication password '#{pg_secret}'\""
   user 'postgres'
   not_if "sudo -u postgres psql -c '\\du' | grep #{node[:repmgr][:replication][:user]}"
 end
 
-file '/var/lib/postgresql/.pgpass' do
-  content pg_secret
+template '/var/lib/postgresql/.pgpass' do
+  source 'pgpass.erb'
   owner node[:repmgr][:system_user]
   mode '0600'
+  variables( :hostname => node[:repmgr][:replication][:hostname],
+             :database => node[:repmgr][:replication][:database],
+             :username => node[:repmgr][:replication][:user],
+             :password => node[:repmgr][:replication][:user_password],
+             :port => node[:postgresql][:config][:port] )
 end
-
-node.set[:repmgr][:replication][:user_password] = pg_secret
-node.save # make sure the password gets saved!
 
 key_bag = if(node[:repmgr][:encrypted_data_bag])
             Chef::EncryptedDataBagItem.load('repmgr', 'clone_key')
