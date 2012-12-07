@@ -3,6 +3,7 @@ include_recipe 'repmgr'
 if(node[:repmgr][:replication][:role] == 'master')
   execute 'register master node' do
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
+    user 'postgres'
     not_if 'pgrep repmgrd'
   end
 else
@@ -21,14 +22,16 @@ else
       end
 
       execute 'scrub postgresql data directory' do
-        execute "rm -rf #{node[:postgresql][:config][:data_directory]}"
+        command "rm -rf #{node[:postgresql][:config][:data_directory]}"
+        user 'postgres'
         only_if do
           File.directory?(node[:postgresql][:config][:data_directory])
         end
       end
 
       execute 'clone standby' do
-        execute clone_cmd
+        user 'postgres'
+        command clone_cmd
       end
 
       service 'postgresql' do
