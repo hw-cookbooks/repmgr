@@ -3,10 +3,11 @@ include_recipe 'repmgr'
 
 # create rep user and rep db
 
-pg_secret = SecureRandom.base64
-
-node.set[:repmgr][:replication][:user_password] = pg_secret
-node.save # make sure the password gets saved!
+if( !node[:repmgr][:replication][:user_password] )
+  pg_secret = SecureRandom.base64
+  node.set[:repmgr][:replication][:user_password] = pg_secret
+  node.save # make sure the password gets saved!
+end
 
 execute 'create replication user' do
   command "psql -c \"create user #{node[:repmgr][:replication][:user]} replication password '#{pg_secret}'\""
