@@ -18,11 +18,6 @@ template '/var/lib/postgresql/.pgpass' do
   source 'pgpass.erb'
   owner node[:repmgr][:system_user]
   mode '0600'
-  variables( :hostname => node[:repmgr][:replication][:hostname],
-             :database => node[:repmgr][:replication][:database],
-             :username => node[:repmgr][:replication][:user],
-             :password => node[:repmgr][:replication][:user_password],
-             :port => node[:postgresql][:config][:port] )
 end
 
 key_bag = if(node[:repmgr][:encrypted_data_bag])
