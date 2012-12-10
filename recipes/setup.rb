@@ -20,7 +20,7 @@ else
       clone_cmd = "#{node[:repmgr][:repmgr_bin]} -D #{node[:postgresql][:config][:data_directory]} " <<
         "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
         "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
-        "standby clone #{master.ipaddress}"
+        "standby clone #{master_node.ipaddress}"
 
       service 'postgresql' do
         action :stop
