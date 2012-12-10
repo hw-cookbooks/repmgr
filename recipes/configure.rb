@@ -4,20 +4,16 @@ include_recipe 'repmgr'
 # create rep user and rep db
 
 if( !node[:repmgr][:replication][:user_password] )
-  pg_secret = SecureRandom.base64
-  node.set[:repmgr][:replication][:user_password] = pg_secret
+  node.set[:repmgr][:replication][:user_password] = SecureRandom.base64
   node.save # make sure the password gets saved!
 end
 
-execute 'create replication user' do
-  command "psql -c \"create user #{node[:repmgr][:replication][:user]} replication password '#{pg_secret}'\""
-  user 'postgres'
-  not_if "sudo -u postgres psql -c '\\du' | grep #{node[:repmgr][:replication][:user]}"
-end
+master_node = search(:node, 'replication_role:master').first
 
 template '/var/lib/postgresql/.pgpass' do
   source 'pgpass.erb'
   owner node[:repmgr][:system_user]
+  variables( :password => master_node[:repmgr][:replication][:user_password] )
   mode '0600'
 end
 
@@ -34,6 +30,13 @@ directory '/var/lib/postgresql/.ssh' do
 end
 
 if(node[:repmgr][:replication][:role] == 'master')
+  execute 'create replication user' do
+    command "psql -c \"create user #{node[:repmgr][:replication][:user]} " +
+      "replication password '#{node[:repmgr][:replication][:user_password]}'\""
+    user 'postgres'
+    not_if "sudo -u postgres psql -c '\\du' | grep #{node[:repmgr][:replication][:user]}"
+  end
+
   file '/var/lib/postgresql/.ssh/authorized_keys' do
     content key_bag['public_key']
     mode '0644'
