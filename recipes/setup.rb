@@ -9,7 +9,7 @@ if(node[:repmgr][:replication][:role] == 'master')
   execute 'register master node' do
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
-    not_if 'pgrep repmgrd'
+    not_if "sudo -u postgres psql --dbname=#{node[:repmgr][:replication][:database]} -c '\\dn' | grep repmgr"
   end
 else
   # TODO: Seach needs to be restricted to common environment
