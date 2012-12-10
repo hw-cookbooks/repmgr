@@ -1,6 +1,11 @@
 include_recipe 'repmgr'
 
 if(node[:repmgr][:replication][:role] == 'master')
+
+  # TODO: create db if missing
+
+  # TODO: grant repmgr schema create/usage on db
+
   execute 'register master node' do
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
