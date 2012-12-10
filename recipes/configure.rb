@@ -52,7 +52,7 @@ if(node[:repmgr][:replication][:role] == 'master')
 else
   file '/var/lib/postgresql/.ssh/id_rsa' do
     content key_bag['private_key']
-    mode '0644'
+    mode '0600'
     owner node[:repmgr][:system_user]
     group node[:repmgr][:system_user]
   end
