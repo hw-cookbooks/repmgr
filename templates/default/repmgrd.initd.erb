@@ -19,7 +19,7 @@ case "$1" in
     <% if @el -%>
     daemon <%= @bin_path %>
     <% else -%>
-    start-stop-daemon --start --quiet --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
+    start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
     <% end -%>
     ;;
   stop)
