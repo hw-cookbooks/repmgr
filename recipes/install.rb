@@ -1,10 +1,16 @@
 include_recipe 'build-essential'
 
-# We want pg_config binary available at compile time
-p = package 'libpq-dev' do
-  action :nothing
+if(node[:repmgr][:pg_bin_dir])
+  pg_bindir = node[:repmgr][:pg_bin_dir]
+else
+  # We want pg_config binary available at compile time
+  p = package 'libpq-dev' do
+    action :nothing
+  end
+  p.run_action(:install)
+
+  pg_bindir = %x{pg_config --bindir}.strip
 end
-p.run_action(:install)
 
 (node[:repmgr][:packages][:dependencies] + Array(node[:repmgr][:packages][:pg_dev])).each do |pkg|
   package pkg
@@ -12,7 +18,6 @@ end
 
 r_url = File.join(node[:repmgr][:base_uri], "repmgr-#{node[:repmgr][:version]}.tar.gz")
 r_local = File.join(node[:repmgr][:build_dir], File.basename(r_url))
-pg_bindir = %x{pg_config --bindir}.strip
 
 directory node[:repmgr][:build_dir]
 
