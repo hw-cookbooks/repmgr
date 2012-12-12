@@ -8,14 +8,22 @@ if( !node[:repmgr][:replication][:user_password] )
   node.save # make sure the password gets saved!
 else
   master_node = search(:node, 'replication_role:master').first
-  pg_pass = master_node[:repmgr][:replication][:user_password]
+  if(master_node)
+    pg_pass = master_node[:repmgr][:replication][:user_password]
+  else
+    pg_pass = ''
+  end
 end
 
 if( node[:repmgr][:replication][:role] == 'master' )
-  hostname = ipaddress
+  hostname = node.ipaddress
 else
   master_node = search(:node, 'replication_role:master').first
-  hostname = master_node.ipaddress
+  if(master_node)
+    hostname = master_node.ipaddress
+  else
+    ipaddress = '127.0.0.1'
+  end
 end
 
 template '/var/lib/postgresql/.pgpass' do
