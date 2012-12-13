@@ -96,7 +96,6 @@ if(node[:repmgr][:replication][:role] == 'master')
 else
   node.set[:postgresql][:replication_role] = 'slave'
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
-  node.set[:postgresql][:config][:hot_standby] = true
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
 end
