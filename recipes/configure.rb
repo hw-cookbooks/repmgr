@@ -88,7 +88,6 @@ if(node[:repmgr][:replication][:role] == 'master')
   node.set[:repmgr][:replication_role] = 'master'
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:archive_mode] = true
-  node.set[:postgresql][:config][:hot_standby] = true
   node.set[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
   node.set[:postgresql][:config][:archive_command] = node[:repmgr][:replication][:archive_command]
   node.set[:postgresql][:config][:archive_timeout] = node[:repmgr][:replication][:archive_timeout]
@@ -101,4 +100,5 @@ else
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
 end
 
+node.set[:postgresql][:config][:hot_standby] = true
 node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:wal_files] if node[:repmgr][:wal_files]
