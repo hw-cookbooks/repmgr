@@ -17,7 +17,8 @@ else
       "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
       "standby clone #{master_node.ipaddress}"
 
-    service 'postgresql' do
+    service 'postgresql-repmgr-stopper' do
+      service_name 'postgresql'
       action :stop
     end
 
@@ -35,7 +36,7 @@ else
       command clone_cmd
     end
 
-    service 'postgresql-repmgr' do
+    service 'postgresql-repmgr-starter' do
       service_name 'postgresql'
       action :start
     end
