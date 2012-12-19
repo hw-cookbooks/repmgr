@@ -1,10 +1,16 @@
 include_recipe 'repmgr'
 
 if(node[:repmgr][:replication][:role] == 'master')
+  # TODO: If changed master is detected should we force registration or
+  #       leave that to be hand tuned?
   execute 'register master node' do
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
-    not_if "sudo -u postgres psql --dbname=#{node[:repmgr][:replication][:database]} -c '\\dn' | grep repmgr"
+    not_if do
+      output = %x{sudo -u postgres repmgr -c /etc/repmgr/repmgr.conf cluster show}
+      master = output.split("\n").detect{|s| s.include?('master')}
+      master.include?(node[:ipaddress])
+    end
   end
 else
   # TODO: Seach needs to be restricted to common environment
