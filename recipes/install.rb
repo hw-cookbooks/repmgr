@@ -1,12 +1,23 @@
 include_recipe 'build-essential'
 
+if(node[:repmgr][:pg_bin_dir])
+  pg_bindir = node[:repmgr][:pg_bin_dir]
+else
+  # We want pg_config binary available at compile time
+  p = package 'libpq-dev' do
+    action :nothing
+  end
+  p.run_action(:install)
+
+  pg_bindir = %x{pg_config --bindir}.strip
+end
+
 (node[:repmgr][:packages][:dependencies] + Array(node[:repmgr][:packages][:pg_dev])).each do |pkg|
   package pkg
 end
 
 r_url = File.join(node[:repmgr][:base_uri], "repmgr-#{node[:repmgr][:version]}.tar.gz")
 r_local = File.join(node[:repmgr][:build_dir], File.basename(r_url))
-pg_bin = %x{pg_config --bindir}.strip
 
 directory node[:repmgr][:build_dir]
 
@@ -23,7 +34,7 @@ end
 
 execute "configure repmgr v#{node[:repmgr][:version]}" do
   command "make USE_PGXS=1 install"
-  cwd File.dirname(r_local)
+  cwd r_local.sub('.tar.gz', '')
   creates File.join(pg_bindir, 'repmgr')
 end
 
@@ -47,9 +58,10 @@ when 'rhel'
 end
 
 template '/etc/init.d/repmgrd' do
-  source 'repmgrd.init.erb'
+  source 'repmgrd.initd.erb'
+  mode '0755'
   variables(
-    :bin_path => node[:repmgr][:repmgrd_bin],
-    :el => node.platform_family == 'rhel'
-  )
+            :bin_path => node[:repmgr][:repmgrd_bin],
+            :el => node.platform_family == 'rhel'
+            )
 end
