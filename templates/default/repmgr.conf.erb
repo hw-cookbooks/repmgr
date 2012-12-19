@@ -1,3 +1,3 @@
 cluster=<%= node[:repmgr][:cluster_name] %>
-node=<%= node[:repmgr][:node_name] || node.name %>
+node=<%= node[:repmgr][:repmgr_node_id] %>
 conninfo='host=<%= node.ipaddress %> user=<%= node[:repmgr][:replication][:user] %> dbname=<%= node[:repmgr][:replication][:database] %>'

@@ -1,9 +1,14 @@
 default[:repmgr][:base_uri] = 'http://www.repmgr.org/download'
-default[:repmgr][:version] = '1.2.0'
+default[:repmgr][:version] = '2.0beta1'
 default[:repmgr][:build_dir] = '/var/cache/repmgr'
-# TODO: RHEL based packages
+# TODO: pkg-build
+default[:repmgr][:data_bag][:name] = 'repmgr'
+default[:repmgr][:data_bag][:item] = 'clone_key'
+default[:repmgr][:data_bag][:encrypted] = true
+default[:repmgr][:data_bag][:secret] = Chef::EncryptedDataBagItem::DEFAULT_SECRET_FILE
 default[:repmgr][:packages][:pg_dev] = 'postgresql-server-dev-9.1'
 default[:repmgr][:packages][:dependencies] = %w(libxslt1-dev libpam0g-dev libedit-dev)
+default[:repmgr][:readonly_slaves] = true
 default[:repmgr][:repmgrd_bin] = '/usr/bin/repmgrd'
 default[:repmgr][:repmgr_bin] = '/usr/bin/repmgr'
 default[:repmgr][:config_file_path] = '/etc/repmgr/repmgr.conf'
@@ -12,6 +17,11 @@ default[:repmgr][:wal_files] = 5000
 default[:repmgr][:system_user] = 'postgres'
 default[:repmgr][:ssh_ignore_hosts_enabled] = false
 default[:repmgr][:ssh_ignore_hosts] = '192.168.0.*'
+default[:repmgr][:master_allow_from] = '0.0.0.0/0'
+default[:repmgr][:pg_home] = '/var/lib/postgresql'
+default[:repmgr][:readonly_slave] = true
+default[:repmgr][:repmgr_node_id] = nil
+default[:repmgr][:id_generator_splay] = 30
 default[:repmgr][:replication][:role] = 'master'
 default[:repmgr][:replication][:wal_level] = 'hot_standby'
 default[:repmgr][:replication][:archive_command] = '/bin/true'

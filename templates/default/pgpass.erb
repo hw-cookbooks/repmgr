@@ -1,1 +1,2 @@
-<%= @hostname %>:<%= node[:postgresql][:config][:port] %>:<%= node[:repmgr][:replication][:database] %>:<%= node[:repmgr][:replication][:user] %>:<%= @password  %>
+*:*:<%= node[:repmgr][:replication][:database] %>:<%= node[:repmgr][:replication][:user] %>:<%= @password  %>
+*:*:replication:<%= node[:repmgr][:replication][:user] %>:<%= @password  %>
