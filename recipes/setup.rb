@@ -15,7 +15,13 @@ if(node[:repmgr][:replication][:role] == 'master')
 else
   # TODO: Seach needs to be restricted to common environment
   unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
-    master_node = search(:node, 'replication_role:master').first
+    master_node = discovery_search(
+      'replication_role:master',
+      :environment_aware => node[:repmgr][:replication][:common_environment],
+      :minimum_response_time => false,
+      :empty_ok => false
+    )
+    raise 'No master found' unless master_node
     # build our command in a string because it's long
     clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
       "-D #{node[:postgresql][:config][:data_directory]} " <<

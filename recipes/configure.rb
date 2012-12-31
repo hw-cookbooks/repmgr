@@ -15,7 +15,12 @@ if(node[:repmgr][:replication][:role] == 'master')
     node.save # make sure the password gets saved!
   end
 else
-  master_node = search(:node, 'replication_role:master').first
+  master_node = discovery_search(
+    'replication_role:master',
+    :environment_aware => node[:repmgr][:replication][:common_environment],
+    :minimum_response_time => false,
+    :empty_ok => false
+  )
   if(master_node)
     pg_pass = master_node[:repmgr][:replication][:user_password]
   end
