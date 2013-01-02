@@ -1,10 +1,7 @@
 require 'securerandom'
 include_recipe 'database'
 include_recipe 'postgresql::ruby'
-
-unless(node[:repmgr][:repmgr_node_id])
-  include_recipe 'repmgr::node_id_generator'
-end
+include_recipe 'repmgr::dumb_repmgr_id'
 
 # create rep user and rep db
 
@@ -32,7 +29,7 @@ template File.join(node[:repmgr][:pg_home], '.pgpass') do
   variables(
     :password => pg_pass || node[:repmgr][:replication][:user_password]
   )
-  mode '0600'
+  mode 0600
 end
 
 key_bag = if(node[:repmgr][:data_bag][:encrypted])
@@ -46,28 +43,28 @@ key_bag = if(node[:repmgr][:data_bag][:encrypted])
           end
 
 directory File.join(node[:repmgr][:pg_home], '.ssh') do 
-  mode '0755'
+  mode 0755
   owner node[:repmgr][:system_user]
   group node[:repmgr][:system_user]
 end
 
 file File.join(node[:repmgr][:pg_home], '.ssh/authorized_keys') do
   content key_bag['public_key']
-  mode '0644'
+  mode 0644
   owner node[:repmgr][:system_user]
   group node[:repmgr][:system_user]
 end
 
 file File.join(node[:repmgr][:pg_home], '.ssh/id_rsa') do
   content key_bag['private_key']
-  mode '0600'
+  mode 0600
   owner node[:repmgr][:system_user]
   group node[:repmgr][:system_user]
 end
 
 template File.join(node[:repmgr][:pg_home], '.ssh/config') do
   source 'ssh_config.erb'
-  mode '0644'
+  mode 0644
   owner node[:repmgr][:system_user]
   group node[:repmgr][:system_user]
   variables( :hosts => node[:repmgr][:ssh_ignore_hosts] )
@@ -78,7 +75,7 @@ directory File.dirname(node[:repmgr][:config_file_path])
 
 template node[:repmgr][:config_file_path] do
   source 'repmgr.conf.erb'
-  mode '0644'
+  mode 0644
 end
 
 if(node[:repmgr][:replication][:role] == 'master')

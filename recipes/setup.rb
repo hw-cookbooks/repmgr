@@ -3,17 +3,26 @@ include_recipe 'repmgr'
 if(node[:repmgr][:replication][:role] == 'master')
   # TODO: If changed master is detected should we force registration or
   #       leave that to be hand tuned?
+  ruby_block 'kill run if master already exists!' do
+    block do
+      raise 'Different node is already identified as PostgreSQL master!'
+    end
+    not_if do
+      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      master = output.split("\n").detect{|s| s.include?('master')}
+      master.include?(node[:ipaddress])
+    end
+  end
   execute 'register master node' do
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
     not_if do
-      output = %x{sudo -u postgres repmgr -c /etc/repmgr/repmgr.conf cluster show}
+      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
       master = output.split("\n").detect{|s| s.include?('master')}
       master.include?(node[:ipaddress])
     end
   end
 else
-  # TODO: Seach needs to be restricted to common environment
   unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
     master_node = discovery_search(
       'replication_role:master',
@@ -21,7 +30,6 @@ else
       :minimum_response_time => false,
       :empty_ok => false
     )
-    raise 'No master found' unless master_node
     # build our command in a string because it's long
     clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
       "-D #{node[:postgresql][:config][:data_directory]} " <<
@@ -51,6 +59,18 @@ else
     service 'postgresql-repmgr-starter' do
       service_name 'postgresql'
       action :start
+    end
+
+    execute 'register slave node' do
+      command "repmgr -f #{node[:repmgr][:config_file_path]} standby register"
+      user 'postgres'
+      not_if do
+        output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path} cluster show}
+        slaves = output.split("\n").find_all{|s| s.include?('standby')}
+        slaves.detect do |s_n|
+          s_n.include?(node[:ipaddress])
+        end
+      end
     end
   end
 end
