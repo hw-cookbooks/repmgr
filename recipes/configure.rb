@@ -12,10 +12,14 @@ if(node[:repmgr][:replication][:role] == 'master')
     node.save # make sure the password gets saved!
   end
 else
+  pass_assign = resources(:bash => 'assign-postgres-password')
+  pass_assign.action :nothing
+
   master_node = discovery_search(
     'replication_role:master',
     :environment_aware => node[:repmgr][:replication][:common_environment],
     :minimum_response_time => false,
+    :raw_search => true,
     :empty_ok => false
   )
   if(master_node)
@@ -126,8 +130,9 @@ else
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
 
   if(master_node)
+    node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
     file '/var/lib/postgresql/.ssh/known_hosts' do
-      content %x{ssh-keyscan #{master_node[:ipaddress]}}
+      content %x{ssh-keyscan #{node[:repmgr][:addressing][:master]}}
     end
   end
 end
