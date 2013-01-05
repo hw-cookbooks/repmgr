@@ -1,6 +1,11 @@
+default[:repmgr][:addressing][:self] = node[:ipaddress]
+default[:repmgr][:addressing][:master] = nil
 default[:repmgr][:base_uri] = 'http://www.repmgr.org/download'
 default[:repmgr][:version] = '2.0beta1'
 default[:repmgr][:build_dir] = '/var/cache/repmgr'
+default[:repmgr][:id_attempts] = 5
+default[:repmgr][:install_method] = 'source'
+default[:repmgr][:package_name] = nil
 # TODO: pkg-build
 default[:repmgr][:data_bag][:name] = 'repmgr'
 default[:repmgr][:data_bag][:item] = 'clone_key'
@@ -34,3 +39,4 @@ default[:repmgr][:replication][:user] = 'replication_user'
 default[:repmgr][:replication][:database] = 'replication_db'
 default[:repmgr][:replication][:standby_feedback] = true
 default[:repmgr][:replication][:hostname] = 'localhost'
+default[:repmgr][:replication][:common_environment] = true
