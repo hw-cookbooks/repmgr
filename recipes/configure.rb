@@ -16,9 +16,9 @@ else
   pass_assign.action :nothing
 
   master_node = discovery_search(
-    'replication_role:master',
+    'repmgr_replication_role:master',
     :environment_aware => node[:repmgr][:replication][:common_environment],
-    :minimum_response_time => false,
+    :minimum_response_time_sec => false,
     :raw_search => true,
     :empty_ok => false
   )
