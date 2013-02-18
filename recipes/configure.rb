@@ -24,6 +24,10 @@ else
   )
   if(master_node)
     pg_pass = master_node[:repmgr][:replication][:user_password]
+    # Cache the password so that if the node is promoted to master, we don't lose our
+    # passwords
+    node.set[:repmgr][:replication][:user_password] = pg_pass
+    node.save
   end
 end
 
