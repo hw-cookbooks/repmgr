@@ -24,6 +24,10 @@ else
   )
   if(master_node)
     pg_pass = master_node[:repmgr][:replication][:user_password]
+    # Cache the password so that if the node is promoted to master, we don't lose our
+    # passwords
+    node.set[:repmgr][:replication][:user_password] = pg_pass
+    node.save
   end
 end
 
@@ -37,16 +41,17 @@ template File.join(node[:repmgr][:pg_home], '.pgpass') do
 end
 
 key_bag = if(node[:repmgr][:data_bag][:encrypted])
+            secret = Chef::EncryptedDataBagItem.load_secret(node[:repmgr][:data_bag][:secret])
             Chef::EncryptedDataBagItem.load(
               node[:repmgr][:data_bag][:name],
               node[:repmgr][:data_bag][:item],
-              node[:repmgr][:data_bag][:secret]
+              secret
             )
           else
             data_bag_item(node[:repmgr][:data_bag][:name], node[:repmgr][:data_bag][:item])
           end
 
-directory File.join(node[:repmgr][:pg_home], '.ssh') do 
+directory File.join(node[:repmgr][:pg_home], '.ssh') do
   mode 0755
   owner node[:repmgr][:system_user]
   group node[:repmgr][:system_user]
