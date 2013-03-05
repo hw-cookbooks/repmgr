@@ -40,16 +40,19 @@ template File.join(node[:repmgr][:pg_home], '.pgpass') do
   mode 0600
 end
 
-key_bag = if(node[:repmgr][:data_bag][:encrypted])
-            secret = Chef::EncryptedDataBagItem.load_secret(node[:repmgr][:data_bag][:secret])
-            Chef::EncryptedDataBagItem.load(
-              node[:repmgr][:data_bag][:name],
-              node[:repmgr][:data_bag][:item],
-              secret
-            )
-          else
-            data_bag_item(node[:repmgr][:data_bag][:name], node[:repmgr][:data_bag][:item])
-          end
+
+if(node[:repmgr][:data_bag][:encrypted])
+  if(node[:repmgr][:data_bag][:secret])
+    secret = Chef::EncryptedDataBagItem.load_secret(node[:repmgr][:data_bag][:secret])
+  end
+  key_bag = Chef::EncryptedDataBagItem.load(
+    node[:repmgr][:data_bag][:name],
+    node[:repmgr][:data_bag][:item],
+    secret
+  )
+else
+  key_bag = data_bag_item(node[:repmgr][:data_bag][:name], node[:repmgr][:data_bag][:item])
+end
 
 directory File.join(node[:repmgr][:pg_home], '.ssh') do
   mode 0755
