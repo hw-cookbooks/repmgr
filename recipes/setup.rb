@@ -15,10 +15,10 @@ if(node[:repmgr][:replication][:role] == 'master')
   end
 
   execute 'register master node' do
-    command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
+    command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
     not_if do
-      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      output = %x{sudo -u postgres #{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} cluster show}
       master = output.split("\n").detect{|s| s.include?('master')}
       master.to_s.include?(node[:repmgr][:addressing][:self])
     end
