@@ -1,7 +1,7 @@
 include_recipe 'postgresql::ruby'
 
 proper_id_aquired = lambda do
-  output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+  output = %x{sudo -u postgres #{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} cluster show}
   !!output.split("\n").detect do |n| 
     n.include?(node[:ipaddress]) || n.include?(node[:repmgr][:addressing][:self])
   end
