@@ -1,3 +1,4 @@
 cluster=<%= node[:repmgr][:cluster_name] %>
 node=<%= node[:repmgr][:repmgr_node_id] %>
 conninfo='host=<%= node.ipaddress %> user=<%= node[:repmgr][:replication][:user] %> dbname=<%= node[:repmgr][:replication][:database] %>'
+loglevel=<%= node[:repmgr][:log_level] %>
