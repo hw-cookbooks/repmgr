@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/chrisroberts/vagabond
-  revision: c98cfa11610083c9f9b95f92e03402bb0e9ec2ce
+  revision: 2950b2d1ed182a8f4559d280ca9d89b63f467b9c
   branch: develop
   specs:
     vagabond (0.2.1)
@@ -92,7 +92,7 @@ GEM
     rest-client (1.6.7)
       mime-types (>= 1.16)
     safe_yaml (0.9.1)
-    slop (3.4.4)
+    slop (3.4.5)
     systemu (2.5.2)
     test-kitchen (1.0.0.alpha.6)
       celluloid
