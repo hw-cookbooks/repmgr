@@ -1,0 +1,23 @@
+{
+  :nodes => {
+    :primary => {
+      :template => 'ubuntu_1204',
+      :run_list => %w(recipe[repmgr]),
+      :union => 'aufs'
+    },
+    :follower => {
+      :template => 'ubuntu_1204',
+      :run_list => %w(recipe[repmgr]),
+      :union => 'aufs'
+    }
+  },
+  :clusters => {
+    :repmgr => %w(primary follower)
+  },
+  :local_chef_server => {
+    :zero => true,
+    :enabled => true,
+    :auto_upload => true
+  }
+}
+
