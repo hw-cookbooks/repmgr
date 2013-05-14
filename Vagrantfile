@@ -5,7 +5,7 @@ Vagrant.configure('2') do |config|
   config.vm.network :private_network, ip: '10.10.10.10'
   config.vm.synced_folder '.', '/vagrant', id: 'vagrant-root', nfs: true
   config.vm.provision :shell do |shell|
-    shell.inline = 'apt-get update; apt-get install -y -q ruby-full git; gem install --no-ri --no-rdoc bundler'
+    shell.inline = 'apt-get update; apt-get install -y -q ruby-full git zsh; gem install --no-ri --no-rdoc bundler'
   end
 
   config.vm.provider :vmware_fusion do |v|
