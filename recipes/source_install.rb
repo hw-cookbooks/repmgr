@@ -1,3 +1,7 @@
+require 'uri'
+
+node.set[:build_essential][:compiletime] = true
+
 include_recipe 'build-essential'
 
 if(node[:repmgr][:pg_bin_dir])
@@ -16,13 +20,14 @@ end
   package pkg
 end
 
-r_url = File.join(node[:repmgr][:base_uri], "repmgr-#{node[:repmgr][:version]}.tar.gz")
-r_local = File.join(node[:repmgr][:build_dir], File.basename(r_url))
+file_name = "repmgr-#{node[:repmgr][:version]}.tar.gz"
+r_local = File.join(node[:repmgr][:build_dir], file_name)
+node.default[:rempgr][:download_url] = URI.join(node[:repmgr][:base_uri], file_name)
 
 directory node[:repmgr][:build_dir]
 
 remote_file r_local do
-  source r_url
+  source node[:repmgr][:download_url]
   action :create_if_missing
 end
 
@@ -61,7 +66,7 @@ template '/etc/init.d/repmgrd' do
   source 'repmgrd.initd.erb'
   mode '0755'
   variables(
-            :bin_path => node[:repmgr][:repmgrd_bin],
-            :el => node.platform_family == 'rhel'
-            )
+    :bin_path => node[:repmgr][:repmgrd_bin],
+    :el => node.platform_family == 'rhel'
+  )
 end
