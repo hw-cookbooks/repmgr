@@ -1,7 +1,7 @@
 default[:repmgr][:addressing][:self] = node[:ipaddress]
 default[:repmgr][:addressing][:master] = nil
 default[:repmgr][:base_uri] = 'http://www.repmgr.org/download'
-default[:repmgr][:version] = '2.0beta1'
+default[:repmgr][:version] = '2.0'
 default[:repmgr][:build_dir] = '/var/cache/repmgr'
 default[:repmgr][:id_attempts] = 5
 default[:repmgr][:install_method] = 'source'
