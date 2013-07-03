@@ -18,7 +18,7 @@ else
   master_node = discovery_search(
     'replication_role:master',
     :environment_aware => node[:repmgr][:replication][:common_environment],
-    :minimum_response_time => false,
+    :minimum_response_time_sec => false,
     :raw_search => true,
     :empty_ok => false
   )
@@ -83,12 +83,7 @@ template File.join(node[:repmgr][:pg_home], '.ssh/config') do
   only_if { node[:repmgr][:ssh_ignore_hosts_enabled] }
 end
 
-directory File.dirname(node[:repmgr][:config_file_path])
-
-template node[:repmgr][:config_file_path] do
-  source 'repmgr.conf.erb'
-  mode 0644
-end
+include_recipe 'repmgr::repmgr_conf'
 
 if(node[:repmgr][:replication][:role] == 'master')
 
@@ -131,12 +126,13 @@ if(node[:repmgr][:replication][:role] == 'master')
   node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:replication][:keep_segments]
   node.set[:postgresql][:config][:hot_standby] = true
 else
-  node.set[:postgresql][:replication_role] = 'slave'
+  node.set[:repmgr][:replication_role] = 'slave'
   node.set[:postgresql][:config][:hot_standby] = node[:repmgr][:readonly_slave]
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
-
+  node.default[:postgresql][:config][:listen_addresses] = node[:ipaddress]
+  
   if(master_node)
     node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
     file '/var/lib/postgresql/.ssh/known_hosts' do
