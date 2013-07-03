@@ -40,3 +40,5 @@ default[:repmgr][:replication][:database] = 'replication_db'
 default[:repmgr][:replication][:standby_feedback] = true
 default[:repmgr][:replication][:hostname] = 'localhost'
 default[:repmgr][:replication][:common_environment] = true
+
+default[:repmgr][:init][:enable_monitoring] = false
