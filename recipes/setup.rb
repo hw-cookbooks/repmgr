@@ -1,4 +1,12 @@
 include_recipe 'repmgr'
+package 'rsync'
+
+link '/usr/local/bin/pg_ctl' do
+  to File.join(%x{pg_config --bindir}.strip, 'pg_ctl')
+  not_if do
+    File.exists?('/usr/local/bin/pg_ctl')
+  end
+end
 
 if(node[:repmgr][:replication][:role] == 'master')
   # TODO: If changed master is detected should we force registration or
@@ -29,7 +37,7 @@ else
       'replication_role:master',
       :raw_search => true,
       :environment_aware => node[:repmgr][:replication][:common_environment],
-      :minimum_response_time => false,
+      :minimum_response_time_sec => false,
       :empty_ok => false
     )
     # build our command in a string because it's long
@@ -69,5 +77,26 @@ else
       action :start
     end
 
+
+    ruby_block 'confirm slave status' do
+      block do
+        raise 'Failed to properly setup slaving!'
+      end
+      not_if do
+        output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+        output.split("\n").detect{|s| s.include?('master') && s.include?(node[:repmgr][:addressing][:self])}
+      end
+      action :nothing
+      subscribes :create, 'service[postgresql-repmgr-starter]', :immediately
+    end
+    
   end
+
+  # ensure we are a witness
+  # TODO: Need HA flag
+=begin
+  execute 'register as witness' do
+    command 
+  end
+=end
 end
