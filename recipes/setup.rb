@@ -8,7 +8,7 @@ if(node[:repmgr][:replication][:role] == 'master')
       raise 'Different node is already identified as PostgreSQL master!'
     end
     only_if do
-      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      output = %x{su postgres -c'repmgr -f #{node[:repmgr][:config_file_path]} cluster show'}
       master = output.split("\n").detect{|s| s.include?('master')}
       !master.to_s.empty? && !master.to_s.include?(node[:repmgr][:addressing][:self])
     end
@@ -18,7 +18,7 @@ if(node[:repmgr][:replication][:role] == 'master')
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
     not_if do
-      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      output = %x{su postgres -c'repmgr -f #{node[:repmgr][:config_file_path]} cluster show'}
       master = output.split("\n").detect{|s| s.include?('master')}
       master.to_s.include?(node[:repmgr][:addressing][:self])
     end
