@@ -19,15 +19,15 @@ case "$1" in
     <% if @el -%>
     daemon <%= @bin_path %>
     <% else -%>
-    start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
+    start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf <%= @additional_args %>
     <% end -%>
     ;;
   stop)
     echo "Stopping repmgrd"
-    kill -SIGHUP `pgrep <%= @bin_path %>` &> /dev/null
+    kill `pgrep <%= @repmgrd_exec %>` &> /dev/null
     ;;
   status)
-    kill -0 `pgrep <%= @bin_path %>` &> /dev/null
+    kill -0 `pgrep <%= @repmgrd_exec %>` &> /dev/null
     ;;
   *)
     echo "Usage: $0 {start|stop|status}"
