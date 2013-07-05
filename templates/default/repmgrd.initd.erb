@@ -24,7 +24,7 @@ case "$1" in
     ;;
   stop)
     echo "Stopping repmgrd"
-    kill -SIGHUP `pgrep <%= @bin_path %>` &> /dev/null
+    kill `pgrep <%= @bin_path %>` &> /dev/null
     ;;
   status)
     kill -0 `pgrep <%= @bin_path %>` &> /dev/null
