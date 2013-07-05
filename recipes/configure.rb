@@ -131,10 +131,10 @@ else
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
-  node.default[:postgresql][:config][:listen_addresses] = node[:ipaddress]
+  node.default[:postgresql][:config][:listen_addresses] = node[:repmgr][:addressing][:self]
   
   if(master_node)
-    node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
+    node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
     file '/var/lib/postgresql/.ssh/known_hosts' do
       content %x{ssh-keyscan #{node[:repmgr][:addressing][:master]}}
     end
