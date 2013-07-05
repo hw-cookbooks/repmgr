@@ -63,6 +63,7 @@ template '/etc/init.d/repmgrd' do
   variables(
             :bin_path => node[:repmgr][:repmgrd_bin],
             :el => node.platform_family == 'rhel',
-            :additional_args => node[:repmgr][:replication][:monitoring_history] if node[:repmgr][:replication][:monitoring_history]
+            :additional_args => (node[:repmgr][:replication][:monitoring_history] if node[:repmgr][:replication][:monitoring_history_arg]),
+            :repmgrd_exec => node[:repmgr][:repmgrd_exec]
             )
 end

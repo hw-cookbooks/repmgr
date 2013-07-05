@@ -24,10 +24,10 @@ case "$1" in
     ;;
   stop)
     echo "Stopping repmgrd"
-    kill `pgrep <%= @bin_path %>` &> /dev/null
+    kill `pgrep <%= @repmgrd_exec %>` &> /dev/null
     ;;
   status)
-    kill -0 `pgrep <%= @bin_path %>` &> /dev/null
+    kill -0 `pgrep <%= @repmgrd_exec %>` &> /dev/null
     ;;
   *)
     echo "Usage: $0 {start|stop|status}"
