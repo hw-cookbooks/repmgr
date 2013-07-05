@@ -75,11 +75,17 @@ else
     service 'postgresql-repmgr-starter' do
       service_name 'postgresql'
       action :start
+      retries 2
     end
-
-
+    
     ruby_block 'confirm slave status' do
       block do
+        Chef::Log.fatal "Slaving failed. Unable to detect self as standby: #{node[:repmgr][:addressing][:self]}"
+        Chef::Log.fatal "OUTPUT: #{%x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}}"
+        recovery_file = File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')
+        if(File.exists?(recovery_file))
+          FileUtils.rm recovery_file
+        end
         raise 'Failed to properly setup slaving!'
       end
       not_if do
@@ -87,7 +93,8 @@ else
         output.split("\n").detect{|s| s.include?('standby') && s.include?(node[:repmgr][:addressing][:self])}
       end
       action :nothing
-      subscribes :create, 'service[postgresql-repmgr-starter]', :immediately
+      subscribes :create, 'service[postgresql-repmgr-starter]', :delayed
+      retries 10
     end
     
   end
