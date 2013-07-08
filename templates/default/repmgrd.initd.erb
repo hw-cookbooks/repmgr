@@ -15,19 +15,21 @@ source /etc/rc.d/init.d/functions
 
 case "$1" in
   start)
-    echo "Starting repmgrd"
+    echo -n "Starting repmgrd"
     <% if @el -%>
-    daemon <%= @bin_path %>
+    daemon <%= @bin_path %> -f /etc/repmgr/repmgr.conf &
     <% else -%>
     start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
     <% end -%>
+    echo
     ;;
   stop)
     echo "Stopping repmgrd"
-    kill -SIGHUP `pgrep <%= @bin_path %>` &> /dev/null
+    kill -SIGTERM `pgrep <%= File.basename(@bin_path) %>` &> /dev/null
     ;;
   status)
-    kill -0 `pgrep <%= @bin_path %>` &> /dev/null
+    kill -0 `pgrep <%= File.basename(@bin_path) %>` &> /dev/null
+    $? && echo 'Running' || echo 'Stopped'
     ;;
   *)
     echo "Usage: $0 {start|stop|status}"
