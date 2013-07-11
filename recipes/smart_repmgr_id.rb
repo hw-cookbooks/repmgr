@@ -1,7 +1,7 @@
 include_recipe 'postgresql::ruby'
 
 proper_id_aquired = lambda do
-  output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+  output = %x{su - postgres -c'repmgr -f #{node[:repmgr][:config_file_path]} cluster show'}
   !!output.split("\n").detect do |n| 
     n.include?(node[:ipaddress]) || n.include?(node[:repmgr][:addressing][:self])
   end
@@ -12,7 +12,9 @@ ruby_block 'Confirm repmgr ID for node' do
     tries = 0
     until(proper_id_aquired.call || tries >= node[:repmgr][:id_attempts])
       Chef::Log.info "Attempting to aquire proper repmgr ID for node! (note: this may require multiple attempts)"
-      cur_max = %x{sudo -u postgres psql -t -A -d #{node[:repmgr][:replication][:database]} -c 'select id from repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes order by id desc limit 1'}.strip.to_i
+      sql_statement = "select id from repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes order by id desc limit 1"
+      sql_command = "psql -t -A -d #{node[:repmgr][:replication][:database]}"
+      cur_max = %x{echo #{sql_statement} | su postgres -c'#{sql_command}'}.strip.to_i
       node.set[:repmgr][:repmgr_node_id] = cur_max + 1
       t = Chef::Resource::Template.new(node[:repmgr][:config_file_path], run_context)
       t.source 'repmgr.conf.erb'

@@ -8,7 +8,7 @@ if(node[:repmgr][:replication][:role] == 'master')
       raise 'Different node is already identified as PostgreSQL master!'
     end
     only_if do
-      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      output = %x{su postgres -c'repmgr -f #{node[:repmgr][:config_file_path]} cluster show 2> /dev/null'}
       master = output.split("\n").detect{|s| s.include?('master')}
       !master.to_s.empty? && !master.to_s.include?(node[:repmgr][:addressing][:self])
     end
@@ -18,7 +18,7 @@ if(node[:repmgr][:replication][:role] == 'master')
     command "repmgr -f #{node[:repmgr][:config_file_path]} master register"
     user 'postgres'
     not_if do
-      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      output = %x{su postgres -c'repmgr -f #{node[:repmgr][:config_file_path]} cluster show 2> /dev/null'}
       master = output.split("\n").detect{|s| s.include?('master')}
       master.to_s.include?(node[:repmgr][:addressing][:self])
     end
@@ -35,13 +35,13 @@ else
     # build our command in a string because it's long
     node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
     clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
-      "-D #{node[:postgresql][:config][:data_directory]} " <<
+      "--force -D #{node[:postgresql][:config][:data_directory]} " <<
       "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
       "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
       "standby clone #{node[:repmgr][:addressing][:master]}"
 
     service 'postgresql-repmgr-stopper' do
-      service_name 'postgresql'
+      service_name node['postgresql']['server']['service_name']
       action :stop
     end
 
@@ -50,22 +50,13 @@ else
       only_if "kill -0 `cat #{node[:postgresql][:config][:external_pid_file]}`"
     end
 
-    directory 'scrub postgresql data directory' do
-      action :delete
-      recursive true
-      path node[:postgresql][:config][:data_directory]
-      only_if do
-        File.directory?(node[:postgresql][:config][:data_directory])
-      end
-    end
-
     execute 'clone standby' do
       user 'postgres'
       command clone_cmd
     end
     
     service 'postgresql-repmgr-starter' do
-      service_name 'postgresql'
+      service_name node['postgresql']['server']['service_name']
       action :start
     end
 
