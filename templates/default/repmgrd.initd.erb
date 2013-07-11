@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Author: Chris Roberts (<chris@hw-ops.com>)
 #
@@ -13,23 +14,41 @@ source /etc/rc.d/init.d/functions
 
 [ -x <%= @bin_path %> ] || exit 1
 
+start() {
+  echo -n "Starting repmgrd"
+  <% if @el -%>
+  daemon "<%= @bin_path %> -f /etc/repmgr/repmgr.conf &"
+  sleep 2
+  <% else -%>
+  start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
+  <% end -%>
+  echo
+}
+
+stop() {
+  echo "Stopping repmgrd"
+  kill -SIGTERM `pgrep <%= File.basename(@bin_path) %>` &> /dev/null
+}
+
+status() {
+  kill -0 `pgrep <%= File.basename(@bin_path) %>` &> /dev/null \
+    && echo 'Running' && return 0\
+    || echo 'Stopped' && return 3
+}
+
 case "$1" in
   start)
-    echo -n "Starting repmgrd"
-    <% if @el -%>
-    daemon <%= @bin_path %> -f /etc/repmgr/repmgr.conf &
-    <% else -%>
-    start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf
-    <% end -%>
-    echo
+    start
+    status &> /dev/null
+    exit $?
     ;;
   stop)
-    echo "Stopping repmgrd"
-    kill -SIGTERM `pgrep <%= File.basename(@bin_path) %>` &> /dev/null
+    stop
+    status &> /dev/null
+    exit [ $? == 3 ]
     ;;
   status)
-    kill -0 `pgrep <%= File.basename(@bin_path) %>` &> /dev/null
-    $? && echo 'Running' || echo 'Stopped'
+    status
     ;;
   *)
     echo "Usage: $0 {start|stop|status}"
