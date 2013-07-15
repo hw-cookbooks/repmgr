@@ -32,14 +32,15 @@ if(node[:repmgr][:replication][:role] == 'master')
     end
   end
 else
+  master_node = discovery_search(
+    'replication_role:master',
+    :raw_search => true,
+    :environment_aware => node[:repmgr][:replication][:common_environment],
+    :minimum_response_time_sec => false,
+    :empty_ok => false
+  )
+
   unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
-    master_node = discovery_search(
-      'replication_role:master',
-      :raw_search => true,
-      :environment_aware => node[:repmgr][:replication][:common_environment],
-      :minimum_response_time_sec => false,
-      :empty_ok => false
-    )
     # build our command in a string because it's long
     node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
     clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
@@ -55,8 +56,8 @@ else
     end
 
     execute 'ensure-halted-postgresql' do
-      command "kill `cat #{node[:postgresql][:config][:external_pid_file]}`"
-      only_if "kill -0 `cat #{node[:postgresql][:config][:external_pid_file]}`"
+      command "pkill postgres"
+      ignore_failure true
     end
 
     directory 'scrub postgresql data directory' do
@@ -100,6 +101,33 @@ else
     
   end
 
+  # add recovery manage here
+
+  template File.join(node[:postgresql][:config][:data_directory], 'recovery.conf') do
+    source 'recovery.conf.erb'
+    mode 0644
+    owner 'postgres'
+    group 'postgres'
+    notifies :restart, 'service[postgresql]', :immediately
+    variables(
+      :master_info => {
+        :host => master_node[:repmgr][:addressing][:self],
+        :port => master_node[:postgresql][:config][:port],
+        :user => node[:repmgr][:replication][:user],
+        :application_name => node.name
+      }
+    )
+  end
+
+  link File.join(node[:postgresql][:config][:data_directory], 'repmgr.conf') do
+    to node[:repmgr][:config_file_path]
+    not_if do
+      File.exists?(
+        File.join(node[:postgresql][:config][:data_directory], 'repmgr.conf')
+      )
+    end
+  end
+  
   # ensure we are a witness
   # TODO: Need HA flag
 =begin
