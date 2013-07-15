@@ -24,7 +24,7 @@ else
   node.default[:repmgr][:download_url] = URI.join(node[:repmgr][:base_uri], file_name).to_s
 end
 
-r_local = File.join(node[:repmgr][:build_dir], file_name)
+r_local = File.join(node[:repmgr][:build_dir], file_name.gsub('/', '-'))
 
 directory node[:repmgr][:build_dir]
 
