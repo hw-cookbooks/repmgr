@@ -12,7 +12,13 @@ ruby_block 'Confirm repmgr ID for node' do
     tries = 0
     until(proper_id_aquired.call || tries >= node[:repmgr][:id_attempts])
       Chef::Log.info "Attempting to aquire proper repmgr ID for node! (note: this may require multiple attempts)"
-      cur_max = %x{sudo -u postgres psql -t -A -d #{node[:repmgr][:replication][:database]} -c 'select id from repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes order by id desc limit 1'}.strip.to_i
+      command = "psql -t -A -d #{node[:repmgr][:replication][:database]} -c 'select id from repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes order by id desc limit 1'"
+      cmd = Mixlib::ShellOut.new(command,
+        :user => 'postgres'
+      )
+      cmd.run_command
+      cmd.error!
+      cur_max = cmd.stdout.strip.to_i
       node.set[:repmgr][:repmgr_node_id] = cur_max + 1
       t = Chef::Resource::Template.new(node[:repmgr][:config_file_path], run_context)
       t.source 'repmgr.conf.erb'
@@ -20,7 +26,8 @@ ruby_block 'Confirm repmgr ID for node' do
       t.mode 0644
       t.run_action(:create)
       s = Chef::Resource::Service.new('repmgrd', run_context)
-      s.run_action(:start)
+      s.supports(:status => true)
+      s.run_action(:restart)
       Chef::Log.info 'Waiting to allow repmgrd to stand up...'
       sleep(5)
       tries += 1
