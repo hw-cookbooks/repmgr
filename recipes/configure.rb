@@ -120,10 +120,6 @@ if(node[:repmgr][:replication][:role] == 'master')
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:archive_mode] = true
   node.set[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
-  node.set[:postgresql][:config][:archive_command] = node[:repmgr][:replication][:archive_command]
-  node.set[:postgresql][:config][:archive_timeout] = node[:repmgr][:replication][:archive_timeout]
-  node.set[:postgresql][:config][:max_wal_senders] = node[:repmgr][:replication][:max_senders]
-  node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:replication][:keep_segments]
   node.set[:postgresql][:config][:hot_standby] = true
 else
   node.set[:repmgr][:replication_role] = 'slave'
@@ -141,7 +137,13 @@ else
   end
 end
 
+node.set[:postgresql][:config][:archive_command] = node[:repmgr][:replication][:archive_command]
+node.set[:postgresql][:config][:archive_timeout] = node[:repmgr][:replication][:archive_timeout]
+node.set[:postgresql][:config][:max_wal_senders] = node[:repmgr][:replication][:max_senders]
+node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:replication][:keep_segments]
+
 node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:wal_files] if node[:repmgr][:wal_files]
+
 # HBA
 node.default[:postgresql][:pg_hba] = [
   {:type => 'hostssl', :db => node[:repmgr][:replication][:database], :user => node[:repmgr][:replication][:user], :addr => node[:repmgr][:master_allow_from], :method => 'md5'},
