@@ -43,3 +43,34 @@ ruby_block 'Confirm repmgr ID for node' do
     proper_id_aquired.call
   end
 end
+
+ruby_block 'Clean previous IDs' do
+  block do
+    require 'pg'
+    if(node[:repmgr][:replication_role] == 'master')
+      master_node = node
+    else
+      master_node = discovery_search(
+        'replication_role:master',
+        :raw_search => true,
+        :environment_aware => node[:repmgr][:replication][:common_environment],
+        :minimum_response_time_sec => false,
+        :empty_ok => false
+      )
+    end
+    pg = PG::Connection.open(
+      :host => master_node[:repmgr][:addressing][:self],
+      :user => 'postgres',
+      :password => master_node[:postgresql][:password][:postgres],
+      :dbname => master_node[:repmgr][:replication][:database]
+    )
+    res = pg.exec(
+      "SELECT id FROM repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes WHERE name = $1 AND id != $2",
+      [node.name, node[:repmgr][:repmgr_node_id]]
+    )
+    res.each_row do |row|
+      Chef::Log.warn "Removing stale ID for PG node: name - #{node.name} id - #{row.first}"
+      pg.exec("DELETE FROM repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes where id = $1", [row.first])
+    end
+  end
+end
