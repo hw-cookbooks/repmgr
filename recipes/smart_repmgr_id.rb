@@ -10,17 +10,23 @@ end
 ruby_block 'Confirm repmgr ID for node' do
   block do
     tries = 0
+    cur_max = nil
     until(proper_id_aquired.call || tries >= node[:repmgr][:id_attempts])
       Chef::Log.info "Attempting to aquire proper repmgr ID for node! (note: this may require multiple attempts)"
-      command = "psql -t -A -d #{node[:repmgr][:replication][:database]} -c 'select id from repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes order by id desc limit 1'"
-      cmd = Mixlib::ShellOut.new(command,
-        :user => 'postgres'
-      )
-      cmd.run_command
-      cmd.error!
-      cur_max = cmd.stdout.strip.to_i
+      unless(cur_max)
+        command = "psql -t -A -d #{node[:repmgr][:replication][:database]} -c 'select id from repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes order by id desc limit 1'"
+        cmd = Mixlib::ShellOut.new(command,
+          :user => 'postgres'
+        )
+        cmd.run_command
+        cmd.error!
+        cur_max = cmd.stdout.strip.to_i
+      end
+      cur_max += 1
       node.set[:repmgr][:repmgr_node_id] = cur_max + 1
-      t = Chef::Resource::Template.new(node[:repmgr][:config_file_path], run_context)
+      node.set[:repmgr][:config][:node] = node[:repmgr][:repmgr_node_id]
+      t = Chef::Resource::Template.new("#{node[:repmgr][:config_file_path]} - #{node[:repmgr][:repmgr_node_id]}", run_context)
+      t.path node[:repmgr][:config_file_path]
       t.source 'repmgr.conf.erb'
       t.cookbook 'repmgr'
       t.mode 0644
