@@ -47,8 +47,8 @@ else
       "-D #{node[:postgresql][:config][:data_directory]} " <<
       "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
       "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
-      "-w #{node[:repmgr][:wal_files]} " <<
-      "standby clone #{node[:repmgr][:addressing][:master]}"
+      "-w #{master_node[:repmgr][:replication][:keep_segments]}" << 
+      "standby clone #{master_node[:repmgr][:addressing][:self]}"
 
     service 'postgresql-repmgr-stopper' do
       service_name 'postgresql'

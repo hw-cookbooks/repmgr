@@ -21,7 +21,6 @@ default[:repmgr][:repmgrd_bin] = '/usr/bin/repmgrd'
 default[:repmgr][:repmgr_bin] = '/usr/bin/repmgr'
 default[:repmgr][:config_file_path] = '/etc/repmgr/repmgr.conf'
 default[:repmgr][:cluster_name] = 'an_cluster'
-default[:repmgr][:wal_files] = 2000
 default[:repmgr][:system_user] = 'postgres'
 default[:repmgr][:ssh_ignore_hosts_enabled] = false
 default[:repmgr][:ssh_ignore_hosts] = '192.168.0.*'
@@ -45,3 +44,6 @@ default[:repmgr][:replication][:hostname] = 'localhost'
 default[:repmgr][:replication][:common_environment] = true
 
 default[:repmgr][:init][:enable_monitoring] = false
+
+
+default[:repmgr][:wal_files] = 2000
