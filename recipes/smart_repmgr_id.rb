@@ -23,9 +23,8 @@ ruby_block 'Confirm repmgr ID for node' do
         cur_max = cmd.stdout.strip.to_i
       end
       cur_max += 1
-      node.set[:repmgr][:repmgr_node_id] = cur_max + 1
-      node.set[:repmgr][:config][:node] = node[:repmgr][:repmgr_node_id]
-      t = Chef::Resource::Template.new("#{node[:repmgr][:config_file_path]} - #{node[:repmgr][:repmgr_node_id]}", run_context)
+      node.set[:repmgr][:config][:node] = cur_max + 1
+      t = Chef::Resource::Template.new("#{node[:repmgr][:config_file_path]} - #{node[:repmgr][:config][:node]}", run_context)
       t.path node[:repmgr][:config_file_path]
       t.source 'repmgr.conf.erb'
       t.cookbook 'repmgr'
@@ -42,7 +41,7 @@ ruby_block 'Confirm repmgr ID for node' do
       Chef::Log.fatal "Failed to aquire repmgr ID. Unable to join cluster!"
       raise 'Repmgr failed to join cluster'
     else
-      Chef::Log.info "Repmgr aquired unique ID: #{node[:repmgr][:repmgr_node_id]}"
+      Chef::Log.info "Repmgr aquired unique ID: #{node[:repmgr][:config][:node]}"
     end
   end
   not_if do
@@ -72,7 +71,7 @@ ruby_block 'Clean previous IDs' do
     )
     res = pg.exec(
       "SELECT id FROM repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes WHERE name = $1 AND id != $2",
-      [node.name, node[:repmgr][:repmgr_node_id]]
+      [node.name, node[:repmgr][:config][:node]]
     )
     res.each_row do |row|
       Chef::Log.warn "Removing stale ID for PG node: name - #{node.name} id - #{row.first}"

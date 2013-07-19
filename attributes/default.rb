@@ -27,7 +27,6 @@ default[:repmgr][:ssh_ignore_hosts] = '192.168.0.*'
 default[:repmgr][:master_allow_from] = '0.0.0.0/0'
 default[:repmgr][:pg_home] = '/var/lib/postgresql'
 default[:repmgr][:readonly_slave] = true
-default[:repmgr][:repmgr_node_id] = nil
 default[:repmgr][:id_generator_splay] = 30
 default[:repmgr][:replication][:role] = 'master'
 default[:repmgr][:replication][:wal_level] = 'hot_standby'

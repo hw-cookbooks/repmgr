@@ -9,7 +9,6 @@ end
 
 # Default out all the configuration values we want
 node.default[:repmgr][:config][:cluster] = node[:repmgr][:cluster_name]
-node.default[:repmgr][:config][:node] = node[:repmgr][:repmgr_node_id]
 node.default[:repmgr][:config][:conninfo] = "host=#{node[:repmgr][:addressing][:self]} user=#{node[:repmgr][:replication][:user]} dbname=#{node[:repmgr][:replication][:database]}"
 node.default[:repmgr][:config][:node_name] = node.name
 node.default[:repmgr][:config][:rsync_options] = '--archive --checksum --compress --progress --rsh=ssh'
