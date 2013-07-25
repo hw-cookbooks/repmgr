@@ -14,8 +14,8 @@ default[:repmgr][:data_bag][:name] = 'repmgr'
 default[:repmgr][:data_bag][:item] = 'clone_key'
 default[:repmgr][:data_bag][:encrypted] = true
 default[:repmgr][:data_bag][:secret] = Chef::EncryptedDataBagItem::DEFAULT_SECRET_FILE
-default[:repmgr][:packages][:pg_dev] = 'postgresql-server-dev-9.1'
-default[:repmgr][:packages][:dependencies] = %w(libxslt1-dev libpam0g-dev libedit-dev)
+default[:repmgr][:packages][:pg_dev] = "postgresql-server-dev-#{node[:postgresql][:version]}"
+default[:repmgr][:packages][:dependencies] = %w(libxslt1-dev libpam0g-dev libedit-dev rsync)
 default[:repmgr][:readonly_slaves] = true
 default[:repmgr][:repmgrd_bin] = '/usr/bin/repmgrd'
 default[:repmgr][:repmgr_bin] = '/usr/bin/repmgr'
@@ -46,3 +46,4 @@ default[:repmgr][:init][:enable_monitoring] = false
 
 
 default[:repmgr][:wal_files] = 2000
+default[:repmgr][:config] = {}
