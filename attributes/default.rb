@@ -1,5 +1,6 @@
 default[:repmgr][:addressing][:self] = node[:ipaddress]
 default[:repmgr][:addressing][:master] = nil
+default[:repmgr][:addressing][:detect] = :none # :cloud_public or :cloud_private
 default[:repmgr][:base_uri] = 'http://www.repmgr.org/download'
 default[:repmgr][:version] = '2.0beta1'
 default[:repmgr][:github_branch] = 'bugfix/standby-follow-user' #'REL2_0_STABLE'
@@ -43,7 +44,5 @@ default[:repmgr][:replication][:hostname] = 'localhost'
 default[:repmgr][:replication][:common_environment] = true
 
 default[:repmgr][:init][:enable_monitoring] = false
-
-
-default[:repmgr][:wal_files] = 2000
+default[:repmgr][:wal_files] = 200
 default[:repmgr][:config] = {}
