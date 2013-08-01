@@ -103,7 +103,6 @@ if(node[:repmgr][:replication][:role] == 'master')
     connection conninfo
     password node[:repmgr][:replication][:user_password]
     database_name node[:repmgr][:replication][:database]
-    host '127.0.0.1'
     action [:create, :grant]
     notifies :run, 'execute[Update replication user role]', :immediately
   end
@@ -121,13 +120,16 @@ if(node[:repmgr][:replication][:role] == 'master')
   node.set[:postgresql][:config][:archive_mode] = true
   node.set[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
   node.set[:postgresql][:config][:hot_standby] = true
+
+  node.set[:repmgr][:addressing][:master] = node[:repmgr][:addressing][:self]
+
 else
   node.set[:repmgr][:replication_role] = 'slave'
   node.set[:postgresql][:config][:hot_standby] = node[:repmgr][:readonly_slave]
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
-  node.default[:postgresql][:config][:listen_addresses] = node[:repmgr][:addressing][:self]
+  node.default[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
   
   if(master_node)
     node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
