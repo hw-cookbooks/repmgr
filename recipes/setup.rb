@@ -42,13 +42,13 @@ else
 
   unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
     # build our command in a string because it's long
-    node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
+    node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
     clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
       "-D #{node[:postgresql][:config][:data_directory]} " <<
       "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
       "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
       "-w #{master_node[:repmgr][:replication][:keep_segments]} " << 
-      "standby clone #{master_node[:repmgr][:addressing][:self]}"
+      "standby clone #{node[:repmgr][:addressing][:master]}"
 
     service 'postgresql-repmgr-stopper' do
       service_name 'postgresql'
@@ -95,8 +95,10 @@ else
         output.split("\n").detect{|s| s.include?('standby') && s.include?(node[:repmgr][:addressing][:self])}
       end
       action :nothing
-      subscribes :create, 'service[postgresql-repmgr-starter]', :delayed
-      retries 10
+      subscribes :create, 'service[postgresql-repmgr-starter]', :immediately
+      retries 20
+      retry_delay 20
+      # NOTE: We want to give lots of breathing room here for catchup
     end
     
   end
@@ -111,7 +113,7 @@ else
     notifies :restart, 'service[postgresql]', :immediately
     variables(
       :master_info => {
-        :host => master_node[:repmgr][:addressing][:self],
+        :host => node[:repmgr][:addressing][:master],
         :port => master_node[:postgresql][:config][:port],
         :user => node[:repmgr][:replication][:user],
         :application_name => node.name
