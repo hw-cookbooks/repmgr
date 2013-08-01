@@ -64,9 +64,9 @@ ruby_block 'Clean previous IDs' do
       )
     end
     pg = PG::Connection.open(
-      :host => master_node[:repmgr][:addressing][:self],
-      :user => 'postgres',
-      :password => master_node[:postgresql][:password][:postgres],
+      :host => node[:repmgr][:addressing][:master],
+      :user => master_node[:repmgr][:replication][:user],
+      :password => master_node[:repmgr][:replication][:user_password],
       :dbname => master_node[:repmgr][:replication][:database]
     )
     res = pg.exec(
@@ -78,4 +78,5 @@ ruby_block 'Clean previous IDs' do
       pg.exec("DELETE FROM repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes where id = $1", [row.first])
     end
   end
+  allow_failure true
 end
