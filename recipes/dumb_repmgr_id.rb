@@ -8,6 +8,6 @@ unless(node[:repmgr][:config][:node])
   )
 
   node.set[:repmgr][:config][:node] = Array(nodes).map{|r_n|
-    r_n[:repmgr][:repmgr][:config][:node].to_i
+    r_n[:repmgr][:config][:node].to_i
   }.max.to_i + 1
 end
