@@ -9,5 +9,5 @@ include_recipe 'repmgr::setup'
 include_recipe 'repmgr::smart_repmgr_id'
 
 service 'repmgrd' do
-  action [:enable, :start]
+  action node[:repmgr][:init][:type].to_s == 'runit' ? :start : [:enable, :start]
 end

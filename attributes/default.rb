@@ -44,5 +44,6 @@ default[:repmgr][:replication][:hostname] = 'localhost'
 default[:repmgr][:replication][:common_environment] = true
 
 default[:repmgr][:init][:enable_monitoring] = false
+default[:repmgr][:init][:type] = :runit # default / runit / upstart
 default[:repmgr][:wal_files] = 200
 default[:repmgr][:config] = {}
