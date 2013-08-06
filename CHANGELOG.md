@@ -1,3 +1,15 @@
+## v0.2.0
+* Update repmgr version installed
+* Allow custom source location
+* Clean up configuration generation
+* Always use `addressing` attributes
+* Allow monitoring to be enabled in init script
+* Add support for runit to manage `repmgrd`
+* Clean out cluster tables if needed
+* Remove duplicate attributes
+* Support modified versions of postgresql
+* Reduce keep segments to 500 by default
+
 ## v0.1.2
 * Fix discovery version restriction
 
