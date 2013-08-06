@@ -34,7 +34,7 @@ default[:repmgr][:replication][:wal_level] = 'hot_standby'
 default[:repmgr][:replication][:archive_command] = '/bin/true'
 default[:repmgr][:replication][:archive_timeout] = 60
 default[:repmgr][:replication][:max_senders] = 5
-default[:repmgr][:replication][:keep_segments] = 2000
+default[:repmgr][:replication][:keep_segments] = 500
 default[:repmgr][:replication][:streaming_delay] = -1
 default[:repmgr][:replication][:listen_addresses] = '*'
 default[:repmgr][:replication][:user] = 'replication_user'
@@ -44,6 +44,5 @@ default[:repmgr][:replication][:hostname] = 'localhost'
 default[:repmgr][:replication][:common_environment] = true
 
 default[:repmgr][:init][:enable_monitoring] = false
-default[:repmgr][:init][:type] = :runit # default / runit / upstart
-default[:repmgr][:wal_files] = 200
+default[:repmgr][:init][:type] = :default # runit / upstart (soon)
 default[:repmgr][:config] = {}
