@@ -72,7 +72,6 @@ when 'runit'
   runit_service 'repmgrd' do
     default_logger true
     run_template_name 'repmgrd'
-    action :nothing
   end
 when 'upstart'
   raise "Not currently supported init type (upstart)"
