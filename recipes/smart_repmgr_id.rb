@@ -78,5 +78,5 @@ ruby_block 'Clean previous IDs' do
       pg.exec("DELETE FROM repmgr_#{node[:repmgr][:cluster_name]}.repl_nodes where id = $1", [row.first])
     end
   end
-  allow_failure true
+  ignore_failure true
 end
