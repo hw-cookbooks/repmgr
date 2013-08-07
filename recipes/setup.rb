@@ -79,6 +79,11 @@ else
       action :start
       retries 2
     end
+
+    service 'repmgrd-setup-start' do
+      service_name 'repmgrd'
+      action :start
+    end
     
     ruby_block 'confirm slave status' do
       block do
@@ -95,7 +100,7 @@ else
         output.split("\n").detect{|s| s.include?('standby') && s.include?(node[:repmgr][:addressing][:self])}
       end
       action :nothing
-      subscribes :create, 'service[postgresql-repmgr-starter]', :immediately
+      subscribes :create, 'service[repmgrd-setup-start]', :immediately
       retries 20
       retry_delay 20
       # NOTE: We want to give lots of breathing room here for catchup
