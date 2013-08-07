@@ -1,3 +1,7 @@
+## v0.2.2
+* Ensure daemon is started before slave confirmation
+* Force daemon restart when init is updated
+
 ## v0.2.0
 * Update repmgr version installed
 * Allow custom source location
