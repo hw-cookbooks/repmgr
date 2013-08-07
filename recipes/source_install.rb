@@ -82,5 +82,8 @@ else
     variables(
       :el => node.platform_family == 'rhel'
     )
+    if(File.exists?('/etc/init.d/repmgrd'))
+      notifies :restart, 'service[repmgrd]'
+    end
   end
 end
