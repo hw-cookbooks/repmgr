@@ -23,7 +23,10 @@ platforms:
 
 suites:
 - name: default
-  run_list: ["recipe[postgresql::server]", "recipe[repmgr]"]
+  run_list:
+    - recipe[postgresql::server]
+    - recipe[postgresql::contrib]
+    - recipe[repmgr]
   attributes:
     postgresql:
       password:
@@ -34,6 +37,7 @@ suites:
       replication:
         role: "master"
         user_password: "32e12f215ba27cb750c9e093ce4b5127"
+        database: "pgbench"
       config:
         node: 1
       data_bag:
