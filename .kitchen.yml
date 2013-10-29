@@ -34,6 +34,8 @@ suites:
       config:
         listen_addresses: "0.0.0.0"
     repmgr:
+      addressing:
+        self: "localhost"
       replication:
         role: "master"
         user_password: "32e12f215ba27cb750c9e093ce4b5127"
