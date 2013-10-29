@@ -40,72 +40,90 @@ else
     :empty_ok => false
   )
 
-  unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
-    # build our command in a string because it's long
-    node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
-    clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
-      "-D #{node[:postgresql][:config][:data_directory]} " <<
-      "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
-      "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
-      "-w #{master_node[:repmgr][:replication][:keep_segments]} " << 
-      "standby clone #{node[:repmgr][:addressing][:master]}"
-
-    service 'postgresql-repmgr-stopper' do
-      service_name 'postgresql'
-      action :stop
+  ruby_block 'slave_setup_trigger' do
+    block do
+      Chef::Log.warn 'Triggering slave replication setup'
     end
-
-    execute 'ensure-halted-postgresql' do
-      command "pkill postgres"
-      ignore_failure true
-    end
-
-    directory 'scrub postgresql data directory' do
-      action :delete
-      recursive true
-      path node[:postgresql][:config][:data_directory]
-      only_if do
-        File.directory?(node[:postgresql][:config][:data_directory])
+    only_if do
+      require 'pathname'
+      node[:repmgr][:replication][:validation_paths].detect do |path|
+        full_path = Pathname.new(path).absolute? ? path : File.join(node[:postgresql][:config][:data_directory], path)
+        !File.exists?(full_path)
       end
     end
+  end
 
-    execute 'clone standby' do
-      user 'postgres'
-      command clone_cmd
-    end
-    
-    service 'postgresql-repmgr-starter' do
-      service_name 'postgresql'
-      action :start
-      retries 2
-    end
+  # build our command in a string because it's long
+  node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
+  clone_cmd = "#{node[:repmgr][:repmgr_bin]} " <<
+    "-D #{node[:postgresql][:config][:data_directory]} " <<
+    "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
+    "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
+    "-w #{master_node[:repmgr][:replication][:keep_segments]} " <<
+    "standby clone #{node[:repmgr][:addressing][:master]}"
 
-    service 'repmgrd-setup-start' do
-      service_name 'repmgrd'
-      action :start
+  service 'postgresql-repmgr-stopper' do
+    service_name 'postgresql'
+    action :nothing
+    subscribes :stop, 'ruby_block[slave_setup_trigger]', :immediately
+  end
+
+  execute 'ensure-halted-postgresql' do
+    command "pkill postgres"
+    ignore_failure true
+    action :nothing
+    subscribes :run, 'ruby_block[slave_setup_trigger]', :immediately
+  end
+
+  directory 'scrub postgresql data directory' do
+    action :nothing
+    recursive true
+    path node[:postgresql][:config][:data_directory]
+    only_if do
+      File.directory?(node[:postgresql][:config][:data_directory])
     end
-    
-    ruby_block 'confirm slave status' do
-      block do
-        Chef::Log.fatal "Slaving failed. Unable to detect self as standby: #{node[:repmgr][:addressing][:self]}"
-        Chef::Log.fatal "OUTPUT: #{%x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}}"
-        recovery_file = File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')
-        if(File.exists?(recovery_file))
-          FileUtils.rm recovery_file
-        end
-        raise 'Failed to properly setup slaving!'
+    subscribes :delete, 'ruby_block[slave_setup_trigger]', :immediately
+  end
+
+  execute 'clone standby' do
+    action :nothing
+    user 'postgres'
+    command clone_cmd
+    subscribes :run, 'ruby_block[slave_setup_trigger]', :immediately
+  end
+
+  service 'postgresql-repmgr-starter' do
+    service_name 'postgresql'
+    action :nothing
+    retries 2
+    subscribes :start, 'ruby_block[slave_setup_trigger]', :immediately
+  end
+
+  service 'repmgrd-setup-start' do
+    service_name 'repmgrd'
+    action :nothing
+    subscribes :start, 'ruby_block[slave_setup_trigger]', :immediately
+  end
+
+  ruby_block 'confirm slave status' do
+    block do
+      Chef::Log.fatal "Slaving failed. Unable to detect self as standby: #{node[:repmgr][:addressing][:self]}"
+      Chef::Log.fatal "OUTPUT: #{%x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}}"
+      recovery_file = File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')
+      if(File.exists?(recovery_file))
+        FileUtils.rm recovery_file
       end
-      not_if do
-        output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
-        output.split("\n").detect{|s| s.include?('standby') && s.include?(node[:repmgr][:addressing][:self])}
-      end
-      action :nothing
-      subscribes :create, 'service[repmgrd-setup-start]', :immediately
-      retries 20
-      retry_delay 20
-      # NOTE: We want to give lots of breathing room here for catchup
+      raise 'Failed to properly setup slaving!'
     end
-    
+    not_if do
+      output = %x{sudo -u postgres repmgr -f #{node[:repmgr][:config_file_path]} cluster show}
+      output.split("\n").detect{|s| s.include?('standby') && s.include?(node[:repmgr][:addressing][:self])}
+    end
+    action :nothing
+    subscribes :create, 'service[repmgrd-setup-start]', :immediately
+    retries 20
+    retry_delay 20
+    # NOTE: We want to give lots of breathing room here for catchup
   end
 
   # add recovery manage here
@@ -134,12 +152,12 @@ else
       )
     end
   end
-  
+
   # ensure we are a witness
   # TODO: Need HA flag
 =begin
   execute 'register as witness' do
-    command 
+    command
   end
 =end
 end

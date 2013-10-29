@@ -43,6 +43,8 @@ default[:repmgr][:replication][:standby_feedback] = true
 default[:repmgr][:replication][:hostname] = 'localhost'
 default[:repmgr][:replication][:common_environment] = true
 
+default[:repmgr][:replication][:validation_paths] = ['pg_xlog', 'recovery.conf', 'repmgr.conf', 'PG_VERSION']
+
 default[:repmgr][:init][:enable_monitoring] = false
 default[:repmgr][:init][:type] = :default # runit / upstart (soon)
 default[:repmgr][:config] = {}
