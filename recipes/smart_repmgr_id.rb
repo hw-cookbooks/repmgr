@@ -1,14 +1,14 @@
-include_recipe 'postgresql::ruby'
 
 proper_id_aquired = lambda do
   output = %x{sudo -u postgres #{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} cluster show}
-  !!output.split("\n").detect do |n| 
+  !!output.split("\n").detect do |n|
     n.include?(node[:ipaddress]) || n.include?(node[:repmgr][:addressing][:self])
   end
 end
 
 ruby_block 'Confirm repmgr ID for node' do
   block do
+    include_recipe 'postgresql::ruby'
     tries = 0
     cur_max = nil
     until(proper_id_aquired.call || tries >= node[:repmgr][:id_attempts])

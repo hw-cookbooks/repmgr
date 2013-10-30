@@ -10,7 +10,13 @@ ruby_block 'set pg bin dir' do
   end
 end
 
-(node[:repmgr][:packages][:dependencies] + Array(node[:repmgr][:packages][:pg_dev])).each do |pkg|
+# re-default to pick up overrides
+node.default[:repmgr][:packages][:pg_dev] = "postgresql-server-dev-#{node[:postgresql][:version]}"
+
+[
+  node[:repmgr][:packages][:dependencies],
+  Array(node[:repmgr][:packages][:pg_dev])
+].flatten.compact.each do |pkg|
   package pkg
 end
 

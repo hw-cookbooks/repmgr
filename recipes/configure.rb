@@ -1,6 +1,5 @@
 require 'securerandom'
 include_recipe 'database'
-include_recipe 'postgresql::ruby'
 include_recipe 'repmgr::dumb_repmgr_id'
 
 # create rep user and rep db
@@ -130,7 +129,7 @@ else
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
   node.default[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
-  
+
   if(master_node)
     node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
     file '/var/lib/postgresql/.ssh/known_hosts' do
