@@ -46,6 +46,7 @@ suites:
         encrypted: false
 - name: postgresql-92
   run_list:
+    - recipe[repmgr::apt_pgdg_postgresql]
     - recipe[postgresql::server]
     - recipe[postgresql::contrib]
     - recipe[repmgr]
