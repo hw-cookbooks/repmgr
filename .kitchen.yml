@@ -30,16 +30,40 @@ suites:
   attributes:
     postgresql:
       password:
-        postgres: "32e12f215ba27cb750c9e093ce4b5127"
+        postgres: 32e12f215ba27cb750c9e093ce4b5127
       config:
-        listen_addresses: "0.0.0.0"
+        listen_addresses: 0.0.0.0
     repmgr:
       addressing:
-        self: "localhost"
+        self: localhost
       replication:
-        role: "master"
-        user_password: "32e12f215ba27cb750c9e093ce4b5127"
-        database: "pgbench"
+        role: master
+        user_password: 32e12f215ba27cb750c9e093ce4b5127
+        database: pgbench
+      config:
+        node: 1
+      data_bag:
+        encrypted: false
+- name: postgresql-92
+  run_list:
+    - recipe[postgresql::server]
+    - recipe[postgresql::contrib]
+    - recipe[repmgr]
+  attributes:
+    postgresql:
+      enable_pgdg_apt: true
+      version: 9.2
+      password:
+        postgres: 32e12f215ba27cb750c9e093ce4b5127
+      config:
+        listen_addresses: 0.0.0.0
+    repmgr:
+      addressing:
+        self: localhost
+      replication:
+        role: master
+        user_password: 32e12f215ba27cb750c9e093ce4b5127
+        database: pgbench
       config:
         node: 1
       data_bag:

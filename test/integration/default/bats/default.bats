@@ -5,7 +5,7 @@
   [ "$status" -eq 0 ]
 }
 
-@test "it has a replication status" {
+@test "it has repmgr state data" {
   run sudo -u postgres psql -x -d pgbench -c "SELECT * FROM repmgr_an_cluster.repl_monitor"
   [ "$status" -eq 0 ]
 }
