@@ -14,7 +14,6 @@ SITE
       build-essential (~> 1.4)
       openssl (~> 1.1)
     openssl (1.1.0)
-    package_installer (0.0.1)
     postgresql (3.1.0)
       apt (>= 0.0.0)
       build-essential (>= 0.0.0)
@@ -32,7 +31,6 @@ PATH
       build-essential (>= 0.0.0)
       database (>= 0.0.0)
       discovery (>= 0.2.0)
-      package_installer (>= 0.0.0)
       postgresql (>= 2.0.0)
       runit (>= 0.0.0)
 
