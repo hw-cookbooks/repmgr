@@ -55,7 +55,7 @@ when 'debian'
     end
   end
   execute "add repmgrd to default paths" do
-    command "update-alternatives --install /usr/bin/repmgrd repmgrd #{File.join(node[:repmgr][:pg_bin_dir], 'repmgrd')} 10"
+    command lazy{ "update-alternatives --install /usr/bin/repmgrd repmgrd #{File.join(node[:repmgr][:pg_bin_dir], 'repmgrd')} 10" }
     not_if do
       %x{update-alternatives --display repmgrd}.split("\n").last.to_s.strip.split(' ').last.to_s.gsub(%r{('|\.$)}, '') == File.join(node[:repmgr][:pg_bin_dir], 'repmgrd')
     end
