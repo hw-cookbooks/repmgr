@@ -95,7 +95,7 @@ if(node[:repmgr][:replication][:role] == 'master')
 
   ruby_block 'install ruby pg gem' do
     block do
-      include_recipe 'postgresql::ruby'
+      run_context.include_recipe 'postgresql::ruby'
     end
   end
 

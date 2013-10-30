@@ -2,7 +2,7 @@ SITE
   remote: http://community.opscode.com/api/v1
   specs:
     apt (2.3.0)
-    aws (0.101.6)
+    aws (1.0.0)
     build-essential (1.4.2)
     database (1.5.2)
       aws (>= 0.0.0)
@@ -14,6 +14,7 @@ SITE
       build-essential (~> 1.4)
       openssl (~> 1.1)
     openssl (1.1.0)
+    package_installer (0.0.1)
     postgresql (3.1.0)
       apt (>= 0.0.0)
       build-essential (>= 0.0.0)
@@ -22,15 +23,16 @@ SITE
       build-essential (>= 0.0.0)
       yum (>= 0.0.0)
     xfs (1.1.0)
-    yum (2.3.4)
+    yum (2.4.0)
 
 PATH
   remote: ./
   specs:
-    repmgr (0.2.2)
+    repmgr (0.2.3)
       build-essential (>= 0.0.0)
       database (>= 0.0.0)
       discovery (>= 0.2.0)
+      package_installer (>= 0.0.0)
       postgresql (>= 2.0.0)
       runit (>= 0.0.0)
 

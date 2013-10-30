@@ -51,6 +51,12 @@ suites:
     - recipe[postgresql::contrib]
     - recipe[repmgr]
   attributes:
+    package_installer:
+      packages:
+        libpq5:
+          version: 9.2.5-1.pgdg12.4+1
+        libpq-dev:
+          version: 9.2.5-1.pgdg12.4+1
     postgresql:
       enable_pgdg_apt: true
       version: 9.2
@@ -59,7 +65,11 @@ suites:
       config:
         listen_addresses: 0.0.0.0
       client:
-        packages: []
+        packages:
+          - postgresql-client-9.2
+      contrib:
+        packages:
+          - postgresql-contrib-9.2
     repmgr:
       addressing:
         self: localhost
