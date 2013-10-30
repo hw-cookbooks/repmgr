@@ -2,7 +2,7 @@ include_recipe 'repmgr'
 package 'rsync'
 
 link '/usr/local/bin/pg_ctl' do
-  to File.join(%x{pg_config --bindir}.strip, 'pg_ctl')
+  to lazy{ File.join(%x{pg_config --bindir}.strip, 'pg_ctl') }
   not_if do
     File.exists?('/usr/local/bin/pg_ctl')
   end

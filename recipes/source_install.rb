@@ -4,13 +4,11 @@ node.set[:build_essential][:compiletime] = true
 
 include_recipe 'build-essential'
 
-# We want pg_config binary available at compile time
-p = package 'libpq-dev' do
-  action :nothing
+ruby_block 'set pg bin dir' do
+  block do
+    node.default[:repmgr][:pg_bin_dir] = %x{pg_config --bindir}.strip
+  end
 end
-p.run_action(:install)
-
-node.default[:repmgr][:pg_bin_dir] = %x{pg_config --bindir}.strip
 
 (node[:repmgr][:packages][:dependencies] + Array(node[:repmgr][:packages][:pg_dev])).each do |pkg|
   package pkg
@@ -44,14 +42,14 @@ end
 execute "configure repmgr v#{node[:repmgr][:version]}" do
   command "make USE_PGXS=1 install"
   cwd r_local.sub('.tar.gz', '')
-  creates File.join(node[:repmgr][:pg_bin_dir], 'repmgr')
+  creates lazy{ File.join(node[:repmgr][:pg_bin_dir], 'repmgr') }
 end
 
 # Ensure commands are in default path!
 case node.platform_family
 when 'debian'
   execute "add repmgr to default paths" do
-    command "update-alternatives --install /usr/bin/repmgr repmgr #{File.join(node[:repmgr][:pg_bin_dir], 'repmgr')} 10"
+    command lazy{ "update-alternatives --install /usr/bin/repmgr repmgr #{File.join(node[:repmgr][:pg_bin_dir], 'repmgr')} 10" }
     not_if do
       %x{update-alternatives --display repmgr}.split("\n").last.to_s.strip.split(' ').last.to_s.gsub(%r{('|\.$)}, '') == File.join(node[:repmgr][:pg_bin_dir], 'repmgr')
     end
