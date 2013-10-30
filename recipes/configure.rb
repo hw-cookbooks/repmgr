@@ -93,6 +93,12 @@ if(node[:repmgr][:replication][:role] == 'master')
     :password => node[:postgresql][:password][:postgres]
   }
 
+  ruby_block 'install ruby pg gem' do
+    block do
+      include_recipe 'postgresql::ruby'
+    end
+  end
+
   postgresql_database node[:repmgr][:replication][:database] do
     connection conninfo
     connection_limit '-1'
