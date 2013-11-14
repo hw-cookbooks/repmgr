@@ -73,11 +73,17 @@ else
       user 'postgres'
       command clone_cmd
     end
-    
+
     service 'postgresql-repmgr-starter' do
       service_name 'postgresql'
       action :start
       retries 2
+    end
+
+    execute 'register standby node' do
+      command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} --verbose standby register"
+      user 'postgres'
+      retries 10
     end
 
     service 'repmgrd-setup-start' do
