@@ -84,6 +84,7 @@ else
       command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} --verbose standby register"
       user 'postgres'
       retries 10
+      ignore_failure true
     end
 
     service 'repmgrd-setup-start' do
