@@ -17,17 +17,18 @@ case "$1" in
   start)
     echo "Starting repmgrd"
     <% if @el -%>
-    daemon <%= @bin_path %>
+    daemon <%= node[:repmgr][:repmgrd_bin] %>
     <% else -%>
-    start-stop-daemon --start --quiet --chuid postgres --background --exec <%= @bin_path %> -- -f /etc/repmgr/repmgr.conf <%= @additional_args %>
+    start-stop-daemon --start --quiet --chuid postgres --background --exec <%= node[:repmgr][:repmgrd_bin] %> -- -f /etc/repmgr/repmgr.conf <%= '--monitoring-history' if node[:repmgr][:init][:enable_monitoring] %>
     <% end -%>
     ;;
   stop)
     echo "Stopping repmgrd"
-    kill `pgrep <%= @repmgrd_exec %>` &> /dev/null
+    pkill <%= File.basename(node[:repmgr][:repmgrd_bin]) %>
+    exit 0
     ;;
   status)
-    kill -0 `pgrep <%= @repmgrd_exec %>` &> /dev/null
+    pkill -0 <%= File.basename(node[:repmgr][:repmgrd_bin]) %>
     ;;
   *)
     echo "Usage: $0 {start|stop|status}"

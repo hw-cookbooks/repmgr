@@ -18,12 +18,16 @@ else
   master_node = discovery_search(
     'replication_role:master',
     :environment_aware => node[:repmgr][:replication][:common_environment],
-    :minimum_response_time => false,
+    :minimum_response_time_sec => false,
     :raw_search => true,
     :empty_ok => false
   )
   if(master_node)
     pg_pass = master_node[:repmgr][:replication][:user_password]
+    # Cache the password so that if the node is promoted to master, we don't lose our
+    # passwords
+    node.set[:repmgr][:replication][:user_password] = pg_pass
+    node.save
   end
 end
 
@@ -36,17 +40,21 @@ template File.join(node[:repmgr][:pg_home], '.pgpass') do
   mode 0600
 end
 
-key_bag = if(node[:repmgr][:data_bag][:encrypted])
-            Chef::EncryptedDataBagItem.load(
-              node[:repmgr][:data_bag][:name],
-              node[:repmgr][:data_bag][:item],
-              node[:repmgr][:data_bag][:secret]
-            )
-          else
-            data_bag_item(node[:repmgr][:data_bag][:name], node[:repmgr][:data_bag][:item])
-          end
 
-directory File.join(node[:repmgr][:pg_home], '.ssh') do 
+if(node[:repmgr][:data_bag][:encrypted])
+  if(node[:repmgr][:data_bag][:secret])
+    secret = Chef::EncryptedDataBagItem.load_secret(node[:repmgr][:data_bag][:secret])
+  end
+  key_bag = Chef::EncryptedDataBagItem.load(
+    node[:repmgr][:data_bag][:name],
+    node[:repmgr][:data_bag][:item],
+    secret
+  )
+else
+  key_bag = data_bag_item(node[:repmgr][:data_bag][:name], node[:repmgr][:data_bag][:item])
+end
+
+directory File.join(node[:repmgr][:pg_home], '.ssh') do
   mode 0755
   owner node[:repmgr][:system_user]
   group node[:repmgr][:system_user]
@@ -75,12 +83,7 @@ template File.join(node[:repmgr][:pg_home], '.ssh/config') do
   only_if { node[:repmgr][:ssh_ignore_hosts_enabled] }
 end
 
-directory File.dirname(node[:repmgr][:config_file_path])
-
-template node[:repmgr][:config_file_path] do
-  source 'repmgr.conf.erb'
-  mode 0644
-end
+include_recipe 'repmgr::repmgr_conf'
 
 if(node[:repmgr][:replication][:role] == 'master')
 
@@ -100,7 +103,6 @@ if(node[:repmgr][:replication][:role] == 'master')
     connection conninfo
     password node[:repmgr][:replication][:user_password]
     database_name node[:repmgr][:replication][:database]
-    host '127.0.0.1'
     action [:create, :grant]
     notifies :run, 'execute[Update replication user role]', :immediately
   end
@@ -117,27 +119,31 @@ if(node[:repmgr][:replication][:role] == 'master')
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:archive_mode] = true
   node.set[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
-  node.set[:postgresql][:config][:archive_command] = node[:repmgr][:replication][:archive_command]
-  node.set[:postgresql][:config][:archive_timeout] = node[:repmgr][:replication][:archive_timeout]
-  node.set[:postgresql][:config][:max_wal_senders] = node[:repmgr][:replication][:max_senders]
-  node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:replication][:keep_segments]
   node.set[:postgresql][:config][:hot_standby] = true
+
+  node.set[:repmgr][:addressing][:master] = node[:repmgr][:addressing][:self]
+
 else
-  node.set[:postgresql][:replication_role] = 'slave'
+  node.set[:repmgr][:replication_role] = 'slave'
   node.set[:postgresql][:config][:hot_standby] = node[:repmgr][:readonly_slave]
   node.set[:postgresql][:config][:wal_level] = 'hot_standby'
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
-
+  node.default[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
+  
   if(master_node)
-    node.default[:repmgr][:addressing][:master] = master_node[:ipaddress]
+    node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
     file '/var/lib/postgresql/.ssh/known_hosts' do
       content %x{ssh-keyscan #{node[:repmgr][:addressing][:master]}}
     end
   end
 end
 
-node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:wal_files] if node[:repmgr][:wal_files]
+node.set[:postgresql][:config][:archive_command] = node[:repmgr][:replication][:archive_command]
+node.set[:postgresql][:config][:archive_timeout] = node[:repmgr][:replication][:archive_timeout]
+node.set[:postgresql][:config][:max_wal_senders] = node[:repmgr][:replication][:max_senders]
+node.set[:postgresql][:config][:wal_keep_segments] = node[:repmgr][:replication][:keep_segments]
+
 # HBA
 node.default[:postgresql][:pg_hba] = [
   {:type => 'hostssl', :db => node[:repmgr][:replication][:database], :user => node[:repmgr][:replication][:user], :addr => node[:repmgr][:master_allow_from], :method => 'md5'},

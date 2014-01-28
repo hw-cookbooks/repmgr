@@ -1,0 +1,4 @@
+#!/bin/sh
+exec 2>&1
+
+exec chpst -u <%= node[:repmgr][:system_user] %> <%= node[:repmgr][:repmgrd_bin] %> -f <%= node[:repmgr][:config_file_path] %> <%= "--monitoring-history" if node[:repmgr][:init][:enable_monitoring] %>
