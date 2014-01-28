@@ -7,7 +7,9 @@ unless(node[:repmgr][:config][:node])
     :empty_ok => true
   )
 
-  node.set[:repmgr][:config][:node] = Array(nodes).map{|r_n|
+  # don't save this now - race condition can occur when multiple
+  # standby nodes come up together, smart_id will save it later
+  node.default[:repmgr][:config][:node] = Array(nodes).map{|r_n|
     r_n[:repmgr][:config][:node].to_i
   }.max.to_i + 1
 end
