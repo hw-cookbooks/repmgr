@@ -156,3 +156,11 @@ else
   end
 =end
 end
+
+# ensure the dumb_repmgr_id doesn't get updated once we are done
+ruby_block 'set node status confirmed' do
+  block do
+    node.set[:repmgr][:node_status_confirmed] = true
+  end
+end
+
