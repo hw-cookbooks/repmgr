@@ -3,7 +3,7 @@ unless(node[:repmgr][:config][:node])
     'repmgr_config_node:*', 
     :raw_search => true,
     :environment_aware => node[:repmgr][:replication][:common_environment],
-    :minimum_response_time => false,
+    :minimum_response_time_sec => false,
     :empty_ok => true
   )
 
