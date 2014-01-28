@@ -1,4 +1,4 @@
-unless(node[:repmgr][:config][:node])
+unless(node[:repmgr][:slave_status_confirmed])
   nodes = discovery_all(
     'repmgr_config_node:*', 
     :raw_search => true,

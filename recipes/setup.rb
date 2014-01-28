@@ -91,7 +91,7 @@ else
       service_name 'repmgrd'
       action :start
     end
-    
+
     ruby_block 'confirm slave status' do
       block do
         Chef::Log.fatal "Slaving failed. Unable to detect self as standby: #{node[:repmgr][:addressing][:self]}"
@@ -112,10 +112,16 @@ else
       retry_delay 20
       # NOTE: We want to give lots of breathing room here for catchup
     end
-    
+
   end
 
   # add recovery manage here
+  
+  ruby_block 'set slave status confirmed' do
+    block do
+      node.set[:repmgr][:slave_status_confirmed] = true
+    end
+  end
 
   template File.join(node[:postgresql][:config][:data_directory], 'recovery.conf') do
     source 'recovery.conf.erb'
@@ -141,7 +147,7 @@ else
       )
     end
   end
-  
+
   # ensure we are a witness
   # TODO: Need HA flag
 =begin
