@@ -55,13 +55,15 @@ ruby_block 'Clean previous IDs' do
     if(node[:repmgr][:replication_role] == 'master')
       master_node = node
     else
-      master_node = discovery_search(
-        'replication_role:master',
-        :raw_search => true,
-        :environment_aware => node[:repmgr][:replication][:common_environment],
-        :minimum_response_time_sec => false,
-        :empty_ok => false
-      )
+      master_node = with_retries(3) do
+        discovery_search(
+          'replication_role:master',
+          :raw_search => true,
+          :environment_aware => node[:repmgr][:replication][:common_environment],
+          :minimum_response_time_sec => false,
+          :empty_ok => false
+        )
+      end
     end
     pg = PG::Connection.open(
       :host => node[:repmgr][:addressing][:master],

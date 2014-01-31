@@ -32,13 +32,15 @@ if(node[:repmgr][:replication][:role] == 'master')
     end
   end
 else
-  master_node = discovery_search(
-    'replication_role:master',
-    :raw_search => true,
-    :environment_aware => node[:repmgr][:replication][:common_environment],
-    :minimum_response_time_sec => false,
-    :empty_ok => false
-  )
+  master_node = with_retries(3) do
+    discovery_search(
+      'replication_role:master',
+      :raw_search => true,
+      :environment_aware => node[:repmgr][:replication][:common_environment],
+      :minimum_response_time_sec => false,
+      :empty_ok => false
+    )
+  end
 
   unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
     # build our command in a string because it's long
