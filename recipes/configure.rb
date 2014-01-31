@@ -15,7 +15,7 @@ else
   pass_assign = resources(:bash => 'assign-postgres-password')
   pass_assign.action :nothing
 
-  unless(node[:repmgr][:replication][:user_password] && node[:repmg][:replication][:use_existing_password])
+  unless(node[:repmgr][:replication][:user_password] && node[:repmgr][:replication][:use_existing_password])
     master_node = discovery_search(
       'replication_role:master',
       :environment_aware => node[:repmgr][:replication][:common_environment],
