@@ -55,7 +55,15 @@ ruby_block 'Clean previous IDs' do
     if(node[:repmgr][:replication_role] == 'master')
       master_node = node
     else
-      master_node = with_retries(3) do
+      if node[:repmgr][:discovery][:master_role]
+        search_term = node[:repmgr][:discovery][:master_role]
+        raw_search = false
+      else
+        search_term = 'replication_role:master'
+        raw_search = true
+      end
+
+      master_node = with_retries do
         discovery_search(
           'replication_role:master',
           :raw_search => true,

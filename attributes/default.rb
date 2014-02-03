@@ -47,3 +47,7 @@ default[:repmgr][:replication][:common_environment] = true
 default[:repmgr][:init][:enable_monitoring] = false
 default[:repmgr][:init][:type] = :default # runit / upstart (soon)
 default[:repmgr][:config] = {}
+
+default[:repmgr][:discovery][:retries] = 3
+default[:repmgr][:discovery][:wait_secs] = 5
+default[:repmgr][:discovery][:master_role] = nil

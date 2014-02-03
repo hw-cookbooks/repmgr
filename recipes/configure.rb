@@ -14,13 +14,20 @@ if(node[:repmgr][:replication][:role] == 'master')
 else
   pass_assign = resources(:bash => 'assign-postgres-password')
   pass_assign.action :nothing
+  if node[:repmgr][:discovery][:master_role]
+    search_term = node[:repmgr][:discovery][:master_role]
+    raw_search = false
+  else
+    search_term = 'replication_role:master'
+    raw_search = true
+  end
 
-  master_node = with_retries(3) do
+  master_node = with_retries do
     discovery_search(
-      'replication_role:master',
+      search_term,
       :environment_aware => node[:repmgr][:replication][:common_environment],
       :minimum_response_time_sec => false,
-      :raw_search => true,
+      :raw_search => raw_search,
       :empty_ok => false
     )
   end

@@ -32,10 +32,18 @@ if(node[:repmgr][:replication][:role] == 'master')
     end
   end
 else
-  master_node = with_retries(3) do
+  if node[:repmgr][:discovery][:master_role]
+    search_term = node[:repmgr][:discovery][:master_role]
+    raw_search = false
+  else
+    search_term = 'replication_role:master'
+    raw_search = true
+  end
+
+  master_node = with_retries do
     discovery_search(
-      'replication_role:master',
-      :raw_search => true,
+      search_term,
+      :raw_search => raw_search,
       :environment_aware => node[:repmgr][:replication][:common_environment],
       :minimum_response_time_sec => false,
       :empty_ok => false
