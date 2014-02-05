@@ -90,6 +90,31 @@ else
       retries 2
     end
 
+    ruby_block 'wait for consistent state to be achieved' do
+      block do
+        Chef::Log.warn 'Slaving delayed: waiting for postgresql hot_standby to achieve consistent state!'
+        raise 'Failed to achieve consistent database state after slaving!'
+      end
+      not_if do
+        postgresql_log_file = "/var/log/postgresql/postgresql-#{node[:postgresql][:version]}-main.log"
+        consistent_state_reached = false
+        File.readlines(postgresql_log_file).reverse_each do |line|
+          if line =~ /database system is ready to accept read only connections/
+            consistent_state_reached = true
+            break
+          elsif line =~ /entering standby mode/
+            break
+          end
+        end
+        consistent_state_reached
+      end
+      action :nothing
+      subscribes :create, 'service[postgresql-repmgr-starter]' , :immediately
+      retries 20
+      retry_delay 20
+      # NOTE: We need to give postgresql plenty of time to recover to a consistent state
+    end
+
     execute 'register standby node' do
       command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} --verbose standby register"
       user 'postgres'
@@ -126,7 +151,7 @@ else
   end
 
   # add recovery manage here
-  
+
   ruby_block 'set slave status confirmed' do
     block do
       node.set[:repmgr][:slave_status_confirmed] = true
