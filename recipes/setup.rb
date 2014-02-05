@@ -98,7 +98,7 @@ else
       not_if do
         postgresql_log_file = "/var/log/postgresql/postgresql-#{node[:postgresql][:version]}-main.log"
         consistent_state_reached = false
-        File.readlines(postgresql_log_file).reverse_each do |line|
+        file_last_lines(postgresql_log_file, 1000).reverse_each do |line|
           if line =~ /database system is ready to accept read only connections/
             consistent_state_reached = true
             break

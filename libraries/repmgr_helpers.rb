@@ -15,6 +15,12 @@ module RepmgrHelpers
       end
     end
   end
+
+  def file_last_lines(file, lines = 100)
+    # no need to read an entire file and
+    # no need for complicated IO#seek on 'nix
+    %x(tail -n #{lines} '#{file}').split(/\r?\n/)
+  end
 end
 
 Chef::Recipe.send(:include, RepmgrHelpers)
