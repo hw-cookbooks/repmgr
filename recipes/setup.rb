@@ -152,12 +152,6 @@ else
 
   # add recovery manage here
 
-  ruby_block 'set slave status confirmed' do
-    block do
-      node.set[:repmgr][:slave_status_confirmed] = true
-    end
-  end
-
   template File.join(node[:postgresql][:config][:data_directory], 'recovery.conf') do
     source 'recovery.conf.erb'
     mode 0644
@@ -191,11 +185,3 @@ else
   end
 =end
 end
-
-# ensure the dumb_repmgr_id doesn't get updated once we are done
-ruby_block 'set node status confirmed' do
-  block do
-    node.set[:repmgr][:node_status_confirmed] = true
-  end
-end
-
