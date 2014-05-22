@@ -5,6 +5,7 @@ default[:repmgr][:base_uri] = 'http://www.repmgr.org/download'
 default[:repmgr][:version] = '2.0beta1'
 default[:repmgr][:github_branch] = 'bugfix/standby-follow-user' #'REL2_0_STABLE'
 default[:repmgr][:github_base] = 'http://github.com/chrisroberts/repmgr/archive/' #'http://github.com/2ndQuadrant/repmgr/archive/'
+default[:repmgr][:download_checksum] = 'ce4aaf094fad' # set to nil to only download once
 default[:repmgr][:enable_github_build] = true
 default[:repmgr][:build_dir] = '/var/cache/repmgr'
 default[:repmgr][:id_attempts] = 5

@@ -14,23 +14,7 @@ if(node[:repmgr][:replication][:role] == 'master')
 else
   pass_assign = resources(:bash => 'assign-postgres-password')
   pass_assign.action :nothing
-  if node[:repmgr][:discovery][:master_role]
-    search_term = node[:repmgr][:discovery][:master_role]
-    raw_search = false
-  else
-    search_term = 'replication_role:master'
-    raw_search = true
-  end
-
-  master_node = with_retries do
-    discovery_search(
-      search_term,
-      :environment_aware => node[:repmgr][:replication][:common_environment],
-      :minimum_response_time_sec => false,
-      :raw_search => raw_search,
-      :empty_ok => false
-    )
-  end
+  master_node = find_master_node()
   if(master_node)
     pg_pass = master_node[:repmgr][:replication][:user_password]
     # Cache the password so that if the node is promoted to master, we don't lose our
@@ -139,7 +123,7 @@ else
   node.set[:postgresql][:config][:hot_standby_feedback] = node[:repmgr][:replication][:standby_feedback]
   node.set[:postgresql][:config][:max_standby_streaming_delay] = node[:repmgr][:replication][:max_streaming_delay]
   node.default[:postgresql][:config][:listen_addresses] = node[:repmgr][:replication][:listen_addresses]
-  
+
   if(master_node)
     node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
     file '/var/lib/postgresql/.ssh/known_hosts' do
