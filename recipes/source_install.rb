@@ -30,10 +30,13 @@ directory node[:repmgr][:build_dir]
 
 remote_file r_local do
   source node[:repmgr][:download_url]
-  action :create_if_missing
+  if node[:repmgr][:download_checksum]
+    checksum node[:repmgr][:download_checksum]
+    action :create
+  else
+    action :create_if_missing
+  end
 end
-
-# TODO: Add dynamic checksum for downloaded asset
 
 execute "unpack #{File.basename(r_local)}" do
   command "tar xzf #{r_local}"
