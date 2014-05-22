@@ -23,7 +23,7 @@ if(node[:repmgr][:replication][:role] == 'master')
   end
 
   execute 'register master node' do
-    command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} master register"
+    command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} master register --verbose"
     user 'postgres'
     not_if do
       output = %x{sudo -u postgres #{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} cluster show}
@@ -32,33 +32,21 @@ if(node[:repmgr][:replication][:role] == 'master')
     end
   end
 else
-  if node[:repmgr][:discovery][:master_role]
-    search_term = node[:repmgr][:discovery][:master_role]
-    raw_search = false
-  else
-    search_term = 'replication_role:master'
-    raw_search = true
-  end
-
-  master_node = with_retries do
-    discovery_search(
-      search_term,
-      :raw_search => raw_search,
-      :environment_aware => node[:repmgr][:replication][:common_environment],
-      :minimum_response_time_sec => false,
-      :empty_ok => false
-    )
-  end
+  master_node = find_master_node()
 
   unless(File.exists?(File.join(node[:postgresql][:config][:data_directory], 'recovery.conf')))
     # build our command in a string because it's long
     node.default[:repmgr][:addressing][:master] = master_node[:repmgr][:addressing][:self]
-    clone_cmd = "#{node[:repmgr][:repmgr_bin]} " << 
+    clone_cmd = "#{node[:repmgr][:repmgr_bin]} " <<
       "-D #{node[:postgresql][:config][:data_directory]} " <<
       "-p #{node[:postgresql][:config][:port]} -U #{node[:repmgr][:replication][:user]} " <<
       "-R #{node[:repmgr][:system_user]} -d #{node[:repmgr][:replication][:database]} " <<
-      "-w #{master_node[:repmgr][:replication][:keep_segments]} " << 
-      "standby clone #{node[:repmgr][:addressing][:master]}"
+      "-w #{master_node[:repmgr][:replication][:keep_segments]} " <<
+      "standby clone #{node[:repmgr][:addressing][:master]} --verbose"
+
+    # use this to check for presence of 'backup in progress' before we start
+    check_backup_in_progress_cmd = "ssh #{master_node[:repmgr][:addressing][:self]} -oStrictHostKeyChecking=no " <<
+      "'ls #{File.join(master_node[:postgresql][:config][:data_directory], 'backup_label')}'"
 
     service 'postgresql-repmgr-stopper' do
       service_name 'postgresql'
@@ -79,9 +67,31 @@ else
       end
     end
 
-    execute 'clone standby' do
-      user 'postgres'
-      command clone_cmd
+    ruby_block 'clone standby node with retries' do
+      block do
+        # if a clone is already in progress, trigger retry
+        result = Mixlib::ShellOut.new(
+          check_backup_in_progress_cmd,
+          :user => node['ninefold_app']['postgresql']['os_user'],
+          :cwd => '/tmp'
+        )
+        result.run_command
+        Chef::Log.debug "Clone in progress check: returned #{result.stdout || result.stderr}"
+        raise 'Unable to start clone until other slave has completed - retrying' if result.exitstatus == 0
+
+        # attempt clone operation, on failure trigger retry
+        result = Mixlib::ShellOut.new(
+          clone_cmd,
+          :user => node['ninefold_app']['postgresql']['os_user'],
+          :cwd => '/tmp'
+        )
+        result.run_command
+        Chef::Log.debug "Clone command: returned #{result.stdout || result.stderr}"
+        result.error!
+      end
+      action :create
+      retries 20
+      retry_delay 20
     end
 
     service 'postgresql-repmgr-starter' do
@@ -95,28 +105,16 @@ else
         Chef::Log.warn 'Slaving delayed: waiting for postgresql hot_standby to achieve consistent state!'
         raise 'Failed to achieve consistent database state after slaving!'
       end
-      not_if do
-        postgresql_log_file = "/var/log/postgresql/postgresql-#{node[:postgresql][:version]}-main.log"
-        consistent_state_reached = false
-        file_last_lines(postgresql_log_file, 1000).reverse_each do |line|
-          if line =~ /database system is ready to accept read only connections/
-            consistent_state_reached = true
-            break
-          elsif line =~ /entering standby mode/
-            break
-          end
-        end
-        consistent_state_reached
-      end
+      not_if { postgresql_in_consistent_state? }
       action :nothing
-      subscribes :create, 'service[postgresql-repmgr-starter]' , :immediately
+      subscribes :create, 'service[postgresql-repmgr-starter]', :immediately
       retries 20
       retry_delay 20
       # NOTE: We need to give postgresql plenty of time to recover to a consistent state
     end
 
     execute 'register standby node' do
-      command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} --verbose standby register"
+      command "#{node[:repmgr][:repmgr_bin]} -f #{node[:repmgr][:config_file_path]} standby register --verbose"
       user 'postgres'
       retries 10
       ignore_failure true
@@ -181,7 +179,7 @@ else
   # TODO: Need HA flag
 =begin
   execute 'register as witness' do
-    command 
+    command
   end
 =end
 end
