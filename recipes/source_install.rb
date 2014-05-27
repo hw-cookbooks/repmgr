@@ -28,14 +28,18 @@ r_local = File.join(node[:repmgr][:build_dir], file_name.gsub('/', '-'))
 
 directory node[:repmgr][:build_dir]
 
+file r_local do
+  action :delete
+  only_if do
+    require 'digest'
+    File.exists?(r_local) && node[:repmgr][:download_checksum] &&
+      !(Digest::SHA256.file(r_local).hexdigest == node[:repmgr][:download_checksum])
+  end
+end
+
 remote_file r_local do
   source node[:repmgr][:download_url]
-  if node[:repmgr][:download_checksum]
-    checksum node[:repmgr][:download_checksum]
-    action :create
-  else
-    action :create_if_missing
-  end
+  action :create_if_missing
 end
 
 execute "unpack #{File.basename(r_local)}" do
