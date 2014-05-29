@@ -25,6 +25,7 @@ else
 end
 
 r_local = File.join(node[:repmgr][:build_dir], file_name.gsub('/', '-'))
+r_path = r_local.sub('.tar.gz', '')
 
 directory node[:repmgr][:build_dir]
 
@@ -41,12 +42,18 @@ end
 execute "unpack #{File.basename(r_local)}" do
   command "tar xzf #{r_local}"
   cwd File.dirname(r_local)
-  creates r_local.sub('.tar.gz', '')
+  creates r_path
+end
+
+%w(repmgr.h check_dir.c).each do |c_file|
+  cookbook_file File.join(r_path, c_file) do
+    action :create
+  end
 end
 
 execute "configure repmgr v#{node[:repmgr][:version]}" do
   command "make USE_PGXS=1 install"
-  cwd r_local.sub('.tar.gz', '')
+  cwd r_path
   creates File.join(node[:repmgr][:pg_bin_dir], 'repmgr')
 end
 
