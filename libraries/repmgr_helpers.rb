@@ -37,22 +37,26 @@ module RepmgrHelpers
   end
 
   def find_master_node
-    if node[:repmgr][:discovery][:master_role]
-      search_term = node[:repmgr][:discovery][:master_role]
-      raw_search = false
+    if node[:repmgr][:replication][:role] == 'master' then
+      node
     else
-      search_term = 'replication_role:master'
-      raw_search = true
-    end
+      if node[:repmgr][:discovery][:master_role]
+        search_term = node[:repmgr][:discovery][:master_role]
+        raw_search = false
+      else
+        search_term = 'replication_role:master'
+        raw_search = true
+      end
 
-    with_retries do
-      discovery_search(
-        search_term,
-        :raw_search => raw_search,
-        :environment_aware => node[:repmgr][:replication][:common_environment],
-        :minimum_response_time_sec => false,
-        :empty_ok => false
-      )
+      with_retries do
+        discovery_search(
+          search_term,
+          :raw_search => raw_search,
+          :environment_aware => node[:repmgr][:replication][:common_environment],
+          :minimum_response_time_sec => false,
+          :empty_ok => false
+        )
+      end
     end
   end
 
