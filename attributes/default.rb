@@ -1,8 +1,8 @@
 default[:repmgr][:addressing][:self] = node[:ipaddress]
 default[:repmgr][:addressing][:master] = nil
 default[:repmgr][:addressing][:detect] = :none # :cloud_public or :cloud_private
-default[:repmgr][:base_uri] = 'http://www.repmgr.org/download'
-default[:repmgr][:version] = '2.0beta1'
+default[:repmgr][:base_uri] = 'http://ninefoldops.com/downloads/'
+default[:repmgr][:version] = '2.0'
 default[:repmgr][:github_branch] = 'bugfix/standby-follow-user' #'REL2_0_STABLE'
 default[:repmgr][:github_base] = 'https://github.com/chrisroberts/repmgr/archive/' #'http://github.com/2ndQuadrant/repmgr/archive/'
 default[:repmgr][:download_checksum] = 'ce4aaf094fad41b858b6a776b6cacd48c6eecda71b21c29089ee852c3f972cf5' # set to nil to only download once

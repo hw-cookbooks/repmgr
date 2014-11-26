@@ -16,6 +16,10 @@ node.default[:repmgr][:pg_bin_dir] = %x{pg_config --bindir}.strip
   package pkg
 end
 
+if node[:postgresql][:version] == '9.3'
+  node.default[:repmgr][:enable_github_build] = false
+end
+
 if(node[:repmgr][:enable_github_build])
   file_name = "repmgr-#{node[:repmgr][:github_branch]}.tar.gz"
   node.default[:repmgr][:download_url] = URI.join(node[:repmgr][:github_base], "#{node[:repmgr][:github_branch]}.tar.gz").to_s
@@ -25,19 +29,19 @@ else
 end
 
 r_local = File.join(node[:repmgr][:build_dir], file_name.gsub('/', '-'))
-r_path = r_local.sub('.tar.gz', '')
-
+r_path  = r_local.sub('.tar.gz', '')    
+    
 directory node[:repmgr][:build_dir]
 
-remote_file r_local do
-  source node[:repmgr][:download_url]
-  if node[:repmgr][:download_checksum]
-    checksum node[:repmgr][:download_checksum]
-    action :create
-  else
-    action :create_if_missing
-  end
-end
+    remote_file r_local do
+        source node[:repmgr][:download_url]
+      if node[:repmgr][:download_checksum] && node[:postgresql][:version] == '9.2'
+        checksum node[:repmgr][:download_checksum]
+        action :create
+      else
+       action :create_if_missing
+      end
+    end
 
 execute "unpack #{File.basename(r_local)}" do
   command "tar xzf #{r_local}"
@@ -45,11 +49,14 @@ execute "unpack #{File.basename(r_local)}" do
   creates r_path
 end
 
-%w(repmgr.h check_dir.c).each do |c_file|
-  cookbook_file File.join(r_path, c_file) do
-    action :create
+if node[:postgresql][:version] == '9.2'
+  %w(repmgr.h check_dir.c).each do |c_file|
+    cookbook_file File.join(r_path, c_file) do
+      action :create
+    end
   end
 end
+
 
 execute "configure repmgr v#{node[:repmgr][:version]}" do
   command "make USE_PGXS=1 install"

@@ -94,10 +94,16 @@ else
       retry_delay 20
     end
 
-    service 'postgresql-repmgr-starter' do
-      service_name 'postgresql'
-      action :start
-      retries 2
+    # service 'postgresql-repmgr-starter' do
+    #   service_name 'postgresql'
+    #   action :start
+    #   retries 2
+    # end
+
+    execute "start newer pg" do
+      command "/etc/init.d/postgresql start #{node[:postgresql][:version]}"
+      action :run
+      only_if { ::File.exists?("/etc/postgresql/#{node[:postgresql][:version]}") }
     end
 
     ruby_block 'wait for consistent state to be achieved' do
@@ -107,7 +113,7 @@ else
       end
       not_if { postgresql_in_consistent_state? }
       action :nothing
-      subscribes :create, 'service[postgresql-repmgr-starter]', :immediately
+      subscribes :create, 'execute[start newer pg]', :immediately
       retries 20
       retry_delay 20
       # NOTE: We need to give postgresql plenty of time to recover to a consistent state
@@ -155,7 +161,7 @@ else
     mode 0644
     owner 'postgres'
     group 'postgres'
-    notifies :restart, 'service[postgresql]', :immediately
+    notifies :run, 'execute[restart newer pg]', :immediately
     variables(
       :master_info => {
         :host => node[:repmgr][:addressing][:master],
