@@ -1,3 +1,6 @@
+## v0.2.3
+* Ensure the standby is registered with the master
+
 ## v0.2.2
 * Ensure daemon is started before slave confirmation
 * Force daemon restart when init is updated
