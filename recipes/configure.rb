@@ -1,5 +1,5 @@
 require 'securerandom'
-include_recipe 'database'
+include_recipe 'database::postgresql'
 include_recipe 'repmgr::dumb_repmgr_id'
 
 # create rep user and rep db
