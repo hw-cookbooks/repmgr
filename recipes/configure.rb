@@ -146,5 +146,5 @@ node.normal['postgresql']['config'][:wal_keep_segments] = node['repmgr']['replic
 # HBA
 node.default['postgresql'][:pg_hba] = [
   { type: 'hostssl', db: node['repmgr']['replication']['database'], user: node['repmgr']['replication']['user'], addr: node['repmgr']['master_allow_from'], method: 'md5' },
-  { type: 'hostssl', db: 'replication', user: node['repmgr']['replication']['user'], addr: node['repmgr']['master_allow_from'], method: 'md5'},
+  { type: 'hostssl', db: 'replication', user: node['repmgr']['replication']['user'], addr: node['repmgr']['master_allow_from'], method: 'md5' },
 ] + node['postgresql']['pg_hba']

@@ -97,7 +97,7 @@ else
       end
       not_if do
         output = `sudo -u postgres repmgr -f #{node['repmgr']['config_file_path']} cluster show`
-        output.split("\n").detect { |s| s.include?('standby') && s.include?(node['repmgr']['addressing']['self'])}
+        output.split("\n").detect { |s| s.include?('standby') && s.include?(node['repmgr']['addressing']['self']) }
       end
       action :nothing
       subscribes :create, 'service[repmgrd-setup-start]', :immediately
