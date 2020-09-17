@@ -27,7 +27,7 @@ if node['repmgr']['replication']['role'] == 'master'
     user 'postgres'
     not_if do
       output = `sudo -u postgres #{node['repmgr']['repmgr_bin']} -f #{node['repmgr']['config_file_path']} cluster show`
-      master = output.split("\n").detect { |s| s.include?('master')}
+      master = output.split("\n").detect { |s| s.include?('master') }
       master.to_s.include?(node['repmgr']['addressing']['self'])
     end
   end
